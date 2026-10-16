@@ -1,0 +1,81 @@
+# Netherlands. DRAFT wording for legal review. Nothing here is legal advice.
+jurisdiction: NL
+clauses:
+  - section: candidate
+    title: Offer of employment
+    body: |
+      Dear {{candidate.greeting_name}},
+
+      We are delighted to offer you the position of {{position.job_title}}{{#if position.department}} in our {{position.department}} team{{/if}} at {{company.legal_name}}. This letter sets out the main terms of our offer. Your employment contract will confirm these and the remaining terms in writing.
+
+  - section: position
+    body: |
+      You will report to {{position.reports_to}}. Your employment will begin on {{position.start_date}}{{#if position.contract_type == "fixed_term"}} and is for a fixed term ending on {{position.end_date}}{{/if}}.
+    legal_notes: Chain rule for successive fixed-term contracts (art. 7:668a BW). Notice of (non-)renewal one month before the end of contracts of 6 months or more (art. 7:668 BW).
+
+  - section: workplace
+    body: |
+      Your place of work will be {{workplace.location}}. Your working week will be {{workplace.hours_per_week}} hours.
+
+  - section: compensation
+    title: Salary
+    body: |
+      Your gross salary will be {{pay.base_amount}} a {{#if pay.period == "month"}}month{{else}}year{{/if}}, paid monthly. You will also receive a holiday allowance (vakantiegeld) of at least 8% of your gross salary, paid each year in May.
+
+      | Component | Gross amount |
+      |---|---:|
+      | Annual salary (without holiday allowance) | {{pay.annual_amount}} |
+      | Each monthly payment | {{pay.period_amount}} |
+
+  - section: bonus
+    body: |
+      You will be eligible for an annual bonus of {{bonus.terms}}. The rules of the bonus scheme in force at the time apply.
+
+  - section: probation
+    editor_help: Dutch law allows up to 1 month of probation for fixed-term contracts of up to 2 years, and up to 2 months for longer or permanent contracts. Contracts of 6 months or less can’t have a probation period.
+    body: |
+      {{#if probation.months == "0"}}There is no probation period.{{else}}Your employment starts with a probation period (proeftijd) of {{probation.months}}, which applies equally to you and the company. During probation, either party may end the employment with immediate effect.{{/if}}
+    legal_notes: Art. 7:652 BW. A probation period that breaks these rules is void.
+
+  - section: leave
+    body: |
+      You will receive {{leave.days}} days of paid holiday a year, based on a full-time working week. The statutory minimum is four times your weekly working hours.
+
+  - section: notice
+    body: |
+      {{#if notice.option == "custom"}}After probation, if the employment is ended, the agreed notice period is {{notice.custom_period}}, and never less than the statutory notice period.{{else}}After probation, if the employment is ended, the statutory notice periods in the Dutch Civil Code apply: one month for you, and one to four months for the company, depending on how long you have worked for us. Notice ends on the last day of a calendar month.{{/if}} Ending the employment is subject to Dutch dismissal law.
+    legal_notes: Art. 7:672 BW. Employer dismissal needs a reasonable ground and UWV permission or a court ruling; the period can be shortened by a month after a UWV procedure.
+
+  - section: pension
+    editor_help: Describe the pension scheme, including any industry-wide (sector) fund that applies.
+    body: |
+      You will join the company’s pension scheme: {{pension.terms}}
+
+  - section: benefits
+    body: |
+      You will also receive {{benefits.description}}.
+
+  - section: relocation
+    body: |
+      To help with your move, we will provide {{relocation.description}}.
+
+  - section: collective_agreement
+    title: Collective labour agreement (CAO)
+    editor_help: If a collective labour agreement (CAO) applies to the company or sector, name it. Remove this section if none applies.
+    body: |
+      The {{collective.name}} applies to your employment. Where it gives you better terms than this letter, the collective agreement applies.
+
+  - section: conditions
+    body: |
+      {{#if conditions.right_to_work or conditions.references or conditions.background_check}}This offer depends on:
+
+      {{#if conditions.right_to_work}}- proof of your right to work in the Netherlands, including a residence and work permit if you need one
+      {{/if}}{{#if conditions.references}}- references that are satisfactory to the company
+      {{/if}}{{#if conditions.background_check}}- a satisfactory background check, carried out with your consent
+      {{/if}}{{/if}}
+
+  - section: acceptance
+    body: |
+      Please confirm that you accept this offer by signing and returning a copy of this letter by {{acceptance.reply_by}}. We look forward to welcoming you to the team.
+
+      Yours sincerely,

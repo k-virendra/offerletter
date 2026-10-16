@@ -1,0 +1,6 @@
+# Native packages ship prebuilt binaries; their install scripts aren't needed.
+ignoredBuiltDependencies:
+  - esbuild
+  - sharp
+  - unrs-resolver
+  - "@tailwindcss/oxide"

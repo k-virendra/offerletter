@@ -1,0 +1,865 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`AU > reads as expected 1`] = `
+"Offer of employment: Senior Backend Engineer
+
+Munich, 16 October 2026
+
+Dear Lena,
+
+We are pleased to offer you employment as Senior Backend Engineer in our Platform team with Example Engineering GmbH. This letter sets out the terms of our offer.
+
+## Your role and start date
+
+You will report to Jonas Becker, Engineering Manager. Your employment will begin on 1 December 2026.
+
+## Place of work and hours
+
+You will work at our Munich office, with up to two days of remote work a week. Your ordinary hours of work will be 38 hours a week, plus reasonable additional hours.
+
+## Remuneration
+
+Your base salary will be $78,000 a year, plus superannuation, paid fortnightly.
+
+| Component | Gross amount |
+| Annual base salary (without superannuation) | $78,000.00 |
+| Each payment (26 a year) | $3,000.00 |
+
+## Annual bonus
+
+You will be eligible for an annual bonus of up to 10% of your annual gross salary, based on targets agreed each year, under the terms of the company’s bonus plan in effect at the time.
+
+## Probation
+
+The first 6 months of your employment will be a probation period. During this time either party may end the employment by giving one week’s notice, or the notice required by the National Employment Standards or an applicable award if that is longer.
+
+## Leave
+
+You will receive 28 days of paid annual leave each year, together with personal/carer’s leave and the other leave in the National Employment Standards.
+
+## Notice periods
+
+After probation, either party may end the employment by giving notice in writing. The company will give you at least the notice required by the National Employment Standards, which depends on your length of service and age.
+
+## Superannuation
+
+The company will make superannuation contributions for you at the rate required by superannuation guarantee law, into the fund you choose. If you don’t choose a fund, we will pay into your existing (stapled) fund or our default fund.
+
+## Benefits
+
+You will also receive a monthly public transport allowance, a company pension contribution and a learning budget of €1,000 a year.
+
+## Relocation support
+
+To help with your move, we will provide a one-off relocation allowance of €3,000 gross.
+
+## Modern award
+
+Your employment is covered by the Professional Employees Award 2020. If anything in this letter is less favourable to you than the award or agreement, the award or agreement applies.
+
+## Information statements
+
+With this letter you will receive the Fair Work Information Statement, which explain your rights at work.
+
+## Conditions of this offer
+
+This offer depends on:
+
+- proof of your right to work in Australia
+- references that are satisfactory to the company
+
+Please confirm that you accept this offer by signing and returning a copy of this letter by 30 October 2026. We look forward to working with you.
+
+Yours sincerely,
+
+[For Example Engineering GmbH] [Accepted by the candidate: I accept this offer on the terms set out above.]
+
+Example Engineering GmbH never charges candidates fees."
+`;
+
+exports[`CA-AB > reads as expected 1`] = `
+"Offer of employment: Senior Backend Engineer
+
+October 16, 2026
+
+Dear Lena,
+
+We are pleased to offer you the position of Senior Backend Engineer in our Platform team at Example Engineering GmbH. This letter sets out the terms of our offer.
+
+## Your role and start date
+
+You will report to Jonas Becker, Engineering Manager. Your employment will begin on December 1, 2026.
+
+## Place of work and hours
+
+You will work at our Munich office, with up to two days of remote work a week. Your regular hours of work will be 40 hours a week.
+
+## Compensation
+
+Your annual salary will be $78,000, paid every two weeks, less the deductions required by law, including income tax, Canada Pension Plan (CPP) contributions and Employment Insurance (EI) premiums.
+
+| Component | Gross amount |
+| Annual salary | $78,000.00 |
+| Each payment (26 a year) | $3,000.00 |
+
+## Annual bonus
+
+You will be eligible for an annual bonus of up to 10% of your annual gross salary, based on targets agreed each year, under the terms of the company’s bonus plan in effect at the time.
+
+## Probationary period
+
+The first 3 months of your employment will be a probationary period, during which the company will assess your fit for the role.
+
+## Vacation and general holidays
+
+You will receive 28 days of paid vacation a year, and at least the vacation time and vacation pay required by the Employment Standards Code. You will also be entitled to Alberta’s general holidays.
+
+## Ending your employment
+
+If your employment is ended without cause after the probationary period, the company will give you at least the notice or pay in lieu of notice required by the Employment Standards Code.
+
+## Retirement savings
+
+You will be eligible to join the company’s retirement savings plan: a group RRSP with matching contributions of up to 4% of salary.
+
+## Benefits
+
+You will also receive a monthly public transport allowance, a company pension contribution and a learning budget of €1,000 a year.
+
+## Relocation support
+
+To help with your move, we will provide a one-off relocation allowance of €3,000 gross.
+
+## Conditions of this offer
+
+This offer depends on:
+
+- proof that you are legally entitled to work in Canada
+- references that are satisfactory to the company
+
+To accept this offer, please sign and return a copy of this letter by October 30, 2026. We look forward to working with you.
+
+Sincerely,
+
+[For Example Engineering GmbH] [Accepted by the candidate: I accept this offer on the terms set out above.]
+
+Example Engineering GmbH never charges candidates fees."
+`;
+
+exports[`CA-BC > reads as expected 1`] = `
+"Offer of employment: Senior Backend Engineer
+
+October 16, 2026
+
+Dear Lena,
+
+We are pleased to offer you the position of Senior Backend Engineer in our Platform team at Example Engineering GmbH. This letter sets out the terms of our offer.
+
+## Your role and start date
+
+You will report to Jonas Becker, Engineering Manager. Your employment will begin on December 1, 2026.
+
+## Place of work and hours
+
+You will work at our Munich office, with up to two days of remote work a week. Your regular hours of work will be 40 hours a week.
+
+## Compensation
+
+Your annual salary will be $78,000, paid every two weeks, less the deductions required by law, including income tax, Canada Pension Plan (CPP) contributions and Employment Insurance (EI) premiums.
+
+| Component | Gross amount |
+| Annual salary | $78,000.00 |
+| Each payment (26 a year) | $3,000.00 |
+
+## Annual bonus
+
+You will be eligible for an annual bonus of up to 10% of your annual gross salary, based on targets agreed each year, under the terms of the company’s bonus plan in effect at the time.
+
+## Probationary period
+
+The first 3 months of your employment will be a probationary period, during which the company will assess your fit for the role.
+
+## Vacation and statutory holidays
+
+You will receive 28 days of paid vacation a year, and at least the vacation time and vacation pay required by the Employment Standards Act. You will also be entitled to British Columbia’s statutory holidays.
+
+## Ending your employment
+
+If your employment is ended without cause after the probationary period, the company will give you at least the written notice or compensation required by the Employment Standards Act.
+
+## Retirement savings
+
+You will be eligible to join the company’s retirement savings plan: a group RRSP with matching contributions of up to 4% of salary.
+
+## Benefits
+
+You will also receive a monthly public transport allowance, a company pension contribution and a learning budget of €1,000 a year.
+
+## Relocation support
+
+To help with your move, we will provide a one-off relocation allowance of €3,000 gross.
+
+## Conditions of this offer
+
+This offer depends on:
+
+- proof that you are legally entitled to work in Canada
+- references that are satisfactory to the company
+
+To accept this offer, please sign and return a copy of this letter by October 30, 2026. We look forward to working with you.
+
+Sincerely,
+
+[For Example Engineering GmbH] [Accepted by the candidate: I accept this offer on the terms set out above.]
+
+Example Engineering GmbH never charges candidates fees."
+`;
+
+exports[`CA-ON > reads as expected 1`] = `
+"Offer of employment: Senior Backend Engineer
+
+October 16, 2026
+
+Dear Lena,
+
+We are pleased to offer you the position of Senior Backend Engineer in our Platform team at Example Engineering GmbH. This letter sets out the terms of our offer.
+
+## Your role and start date
+
+You will report to Jonas Becker, Engineering Manager. Your employment will begin on December 1, 2026.
+
+## Place of work and hours
+
+You will work at our Munich office, with up to two days of remote work a week. Your regular hours of work will be 40 hours a week.
+
+## Compensation
+
+Your annual salary will be $78,000, paid every two weeks, less the deductions required by law, including income tax, Canada Pension Plan (CPP) contributions and Employment Insurance (EI) premiums.
+
+| Component | Gross amount |
+| Annual salary | $78,000.00 |
+| Each payment (26 a year) | $3,000.00 |
+
+## Annual bonus
+
+You will be eligible for an annual bonus of up to 10% of your annual gross salary, based on targets agreed each year, under the terms of the company’s bonus plan in effect at the time.
+
+## Probationary period
+
+The first 3 months of your employment will be a probationary period, during which the company will assess your fit for the role.
+
+## Vacation and public holidays
+
+You will receive 28 days of paid vacation a year, and at least the vacation time and vacation pay required by the Employment Standards Act, 2000. You will also be entitled to Ontario’s public holidays.
+
+## Ending your employment
+
+If your employment is ended without cause after the probationary period, the company will give you the notice or pay in lieu of notice, benefits continuation and any severance pay required by the Employment Standards Act, 2000.
+
+## Retirement savings
+
+You will be eligible to join the company’s retirement savings plan: a group RRSP with matching contributions of up to 4% of salary.
+
+## Benefits
+
+You will also receive a monthly public transport allowance, a company pension contribution and a learning budget of €1,000 a year.
+
+## Relocation support
+
+To help with your move, we will provide a one-off relocation allowance of €3,000 gross.
+
+## Employment standards information
+
+With this letter you will receive a copy of the Employment Standards in Ontario poster, as the Act requires.
+
+## Conditions of this offer
+
+This offer depends on:
+
+- proof that you are legally entitled to work in Canada
+- references that are satisfactory to the company
+
+To accept this offer, please sign and return a copy of this letter by October 30, 2026. We look forward to working with you.
+
+Sincerely,
+
+[For Example Engineering GmbH] [Accepted by the candidate: I accept this offer on the terms set out above.]
+
+Example Engineering GmbH never charges candidates fees."
+`;
+
+exports[`DE > reads as expected 1`] = `
+"Offer of employment: Senior Backend Engineer
+
+Munich, 16 October 2026
+
+Dear Lena,
+
+We are delighted to offer you the position of Senior Backend Engineer in our Platform team at Example Engineering GmbH. This letter sets out the main terms of our offer. Your employment contract will confirm these and the remaining terms in writing.
+
+## Your role and start date
+
+You will report to Jonas Becker, Engineering Manager. Your employment will begin on 1 December 2026.
+
+## Place of work and hours
+
+Your place of work will be our Munich office, with up to two days of remote work a week. Your regular working time will be 40 hours a week, Monday to Friday.
+
+## Salary
+
+Your annual gross salary will be €78,000, paid in 12 equal instalments at the end of each month.
+
+| Component | Gross amount |
+| Annual salary | €78,000.00 |
+| Each instalment (12 a year) | €6,500.00 |
+
+## Annual bonus
+
+You will be eligible for an annual bonus of up to 10% of your annual gross salary, based on targets agreed each year. The rules of the bonus scheme in force at the time apply.
+
+## Probation
+
+The first 6 months of your employment are a probation period. During probation, either party may end the employment with two weeks’ notice.
+
+## Holiday
+
+You will receive 28 working days of paid holiday in each calendar year, based on a five-day week. This includes your statutory minimum holiday.
+
+## Notice periods
+
+After probation, the notice periods in section 622 of the German Civil Code (BGB) apply. Any longer notice period that applies to the company also applies to you. Notice must be given in writing.
+
+## Company pension
+
+You may convert part of your salary into a company pension (Entgeltumwandlung) under the Company Pensions Act (BetrAVG). The company adds 20% to the amount you convert.
+
+## Benefits
+
+You will also receive a monthly public transport allowance, a company pension contribution and a learning budget of €1,000 a year.
+
+## Relocation support
+
+To help with your move, we will provide a one-off relocation allowance of €3,000 gross.
+
+## Advice for workers from outside the EU
+
+You can get free and confidential advice about your rights at work in Germany, in several languages, from the counselling service Faire Integration (www.faire-integration.de).
+
+## Written terms of employment
+
+You will receive the written record of your essential terms of employment that the Nachweisgesetz requires with your employment contract.
+
+## Conditions of this offer
+
+This offer depends on:
+
+- proof of your right to work in Germany before your start date
+- references that are satisfactory to the company
+
+Please confirm that you accept this offer by signing and returning a copy of this letter by 30 October 2026. We look forward to welcoming you to the team.
+
+Yours sincerely,
+
+[For Example Engineering GmbH] [Accepted by the candidate: I accept this offer on the terms set out above.]
+
+Example Engineering GmbH never charges candidates fees."
+`;
+
+exports[`GB > reads as expected 1`] = `
+"Offer of employment: Senior Backend Engineer
+
+Munich, 16 October 2026
+
+Dear Lena,
+
+We are pleased to offer you the position of Senior Backend Engineer in our Platform team at Example Engineering GmbH. This letter sets out the main terms of our offer.
+
+## Your role and start date
+
+You will report to Jonas Becker, Engineering Manager. Your employment will begin on 1 December 2026.
+
+## Place of work and hours
+
+Your normal place of work will be our Munich office, with up to two days of remote work a week. Your normal working hours will be 40 hours a week.
+
+## Salary
+
+Your salary will be £78,000 a year gross, paid monthly by bank transfer.
+
+| Component | Gross amount |
+| Annual salary | £78,000.00 |
+| Each payment (12 a year) | £6,500.00 |
+
+## Annual bonus
+
+You will be eligible for an annual bonus of up to 10% of your annual gross salary, based on targets agreed each year. The rules of the bonus scheme in force at the time apply.
+
+## Probationary period
+
+The first 6 months of your employment will be a probationary period. During this time either party may end the employment by giving one week’s notice.
+
+## Holiday
+
+You will receive 28 days of paid holiday in each holiday year, plus the usual public and bank holidays.
+
+## Notice periods
+
+After your probationary period, you must give at least one week’s notice in writing. The company will give you at least the statutory minimum notice: one week if you have worked here for less than two years, then one week for each complete year of service, up to twelve weeks.
+
+## Pension
+
+If you are eligible, you will be automatically enrolled into our workplace pension scheme, as the Pensions Act 2008 requires. You can choose to opt out.
+
+## Benefits
+
+You will also receive a monthly public transport allowance, a company pension contribution and a learning budget of €1,000 a year.
+
+## Relocation support
+
+To help with your move, we will provide a one-off relocation allowance of €3,000 gross.
+
+## Written terms of employment
+
+You will receive a written statement of your main terms of employment on or before your first day, as the Employment Rights Act 1996 requires.
+
+## Conditions of this offer
+
+This offer depends on:
+
+- proof of your right to work in the UK, which we must check before you start work
+- references that are satisfactory to the company
+
+Please confirm that you accept this offer by signing and returning a copy of this letter by 30 October 2026. We look forward to welcoming you to the team.
+
+Yours sincerely,
+
+[For Example Engineering GmbH] [Accepted by the candidate: I accept this offer on the terms set out above.]
+
+Example Engineering GmbH never charges candidates fees."
+`;
+
+exports[`IE > reads as expected 1`] = `
+"Offer of employment: Senior Backend Engineer
+
+Munich, 16 October 2026
+
+Dear Lena,
+
+We are delighted to offer you the position of Senior Backend Engineer in our Platform team at Example Engineering GmbH. This letter sets out the main terms of our offer. Your contract of employment will confirm these and the remaining terms in writing.
+
+## Your role and start date
+
+You will report to Jonas Becker, Engineering Manager. Your employment will begin on 1 December 2026.
+
+## Place of work and hours
+
+Your place of work will be our Munich office, with up to two days of remote work a week. Your normal working hours will be 40 hours a week.
+
+## Salary
+
+Your gross salary will be €78,000 a year, paid monthly by bank transfer.
+
+| Component | Gross amount |
+| Annual salary | €78,000.00 |
+| Each payment (12 a year) | €6,500.00 |
+
+## Annual bonus
+
+You will be eligible for an annual bonus of up to 10% of your annual gross salary, based on targets agreed each year. The rules of the bonus scheme in force at the time apply.
+
+## Probation
+
+Your employment starts with a probation period of 6 months. During probation, either party may end the employment by giving one week’s notice in writing.
+
+## Annual leave
+
+You will receive 28 working days of paid annual leave in each leave year, in addition to public holidays. This includes your entitlement under the Organisation of Working Time Act 1997.
+
+## Notice periods
+
+After probation, either party may end the employment by giving notice in writing. The company will give you at least the minimum notice in the Minimum Notice and Terms of Employment Acts 1973 to 2005, which depends on your length of service. You must give at least one week’s notice.
+
+## Pension
+
+You can join the company pension scheme after three months, with an employer contribution of 5% of salary.
+
+## Benefits
+
+You will also receive a monthly public transport allowance, a company pension contribution and a learning budget of €1,000 a year.
+
+## Relocation support
+
+To help with your move, we will provide a one-off relocation allowance of €3,000 gross.
+
+## Written terms of employment
+
+Within five days of your start date you will receive a written statement of the core terms of your employment, and a statement of the remaining terms within one month, as the Terms of Employment (Information) Acts require.
+
+## Conditions of this offer
+
+This offer depends on:
+
+- proof of your right to work in Ireland, including an employment permit if you need one
+- references that are satisfactory to the company
+
+Please confirm that you accept this offer by signing and returning a copy of this letter by 30 October 2026. We look forward to welcoming you to the team.
+
+Yours sincerely,
+
+[For Example Engineering GmbH] [Accepted by the candidate: I accept this offer on the terms set out above.]
+
+Example Engineering GmbH never charges candidates fees."
+`;
+
+exports[`NL > reads as expected 1`] = `
+"Offer of employment: Senior Backend Engineer
+
+Munich, 16 October 2026
+
+Dear Lena,
+
+We are delighted to offer you the position of Senior Backend Engineer in our Platform team at Example Engineering GmbH. This letter sets out the main terms of our offer. Your employment contract will confirm these and the remaining terms in writing.
+
+## Your role and start date
+
+You will report to Jonas Becker, Engineering Manager. Your employment will begin on 1 December 2026.
+
+## Place of work and hours
+
+Your place of work will be our Munich office, with up to two days of remote work a week. Your working week will be 40 hours.
+
+## Salary
+
+Your gross salary will be €78,000 a year, paid monthly. You will also receive a holiday allowance (vakantiegeld) of at least 8% of your gross salary, paid each year in May.
+
+| Component | Gross amount |
+| Annual salary (without holiday allowance) | €78,000.00 |
+| Each monthly payment | €6,500.00 |
+
+## Annual bonus
+
+You will be eligible for an annual bonus of up to 10% of your annual gross salary, based on targets agreed each year. The rules of the bonus scheme in force at the time apply.
+
+## Probation
+
+Your employment starts with a probation period (proeftijd) of 2 months, which applies equally to you and the company. During probation, either party may end the employment with immediate effect.
+
+## Holiday and leave
+
+You will receive 28 days of paid holiday a year, based on a full-time working week. The statutory minimum is four times your weekly working hours.
+
+## Notice periods
+
+After probation, if the employment is ended, the statutory notice periods in the Dutch Civil Code apply: one month for you, and one to four months for the company, depending on how long you have worked for us. Notice ends on the last day of a calendar month. Ending the employment is subject to Dutch dismissal law.
+
+## Pension
+
+You will join the company’s pension scheme: the PMT sector pension fund.
+
+## Benefits
+
+You will also receive a monthly public transport allowance, a company pension contribution and a learning budget of €1,000 a year.
+
+## Relocation support
+
+To help with your move, we will provide a one-off relocation allowance of €3,000 gross.
+
+## Collective labour agreement (CAO)
+
+The CAO voor de Metaal en Techniek applies to your employment. Where it gives you better terms than this letter, the collective agreement applies.
+
+## Conditions of this offer
+
+This offer depends on:
+
+- proof of your right to work in the Netherlands, including a residence and work permit if you need one
+- references that are satisfactory to the company
+
+Please confirm that you accept this offer by signing and returning a copy of this letter by 30 October 2026. We look forward to welcoming you to the team.
+
+Yours sincerely,
+
+[For Example Engineering GmbH] [Accepted by the candidate: I accept this offer on the terms set out above.]
+
+Example Engineering GmbH never charges candidates fees."
+`;
+
+exports[`NZ > reads as expected 1`] = `
+"Offer of employment: Senior Backend Engineer
+
+Munich, 16 October 2026
+
+Dear Lena,
+
+We are pleased to offer you the position of Senior Backend Engineer in our Platform team at Example Engineering GmbH. This letter sets out the main terms of our offer. Your individual employment agreement sets out all the terms of your employment.
+
+## Your role and start date
+
+You will report to Jonas Becker, Engineering Manager. Your employment will begin on 1 December 2026.
+
+## Place of work and hours
+
+You will work at our Munich office, with up to two days of remote work a week. Your hours of work will be 40 hours a week.
+
+## Salary
+
+Your salary will be $78,000 a year, paid fortnightly.
+
+| Component | Gross amount |
+| Annual salary | $78,000.00 |
+| Each payment (26 a year) | $3,000.00 |
+
+## Annual bonus
+
+You will be eligible for an annual bonus of up to 10% of your annual gross salary, based on targets agreed each year, under the terms of the company’s bonus scheme in force at the time.
+
+## Trial period
+
+Your employment is subject to a trial period of 90 days from your start date, under sections 67A and 67B of the Employment Relations Act 2000. If the company ends your employment during the trial period by giving notice, you will not be able to raise a personal grievance for unjustified dismissal. You keep your other rights, including the right to raise a personal grievance on other grounds.
+
+## Holidays and leave
+
+You will receive 28 days of paid annual holidays a year, as well as public holidays, sick leave and the other leave in the Holidays Act 2003.
+
+## Notice periods
+
+Either party may end the employment by giving four weeks’ notice in writing.
+
+## KiwiSaver
+
+If you are eligible, you will be automatically enrolled in KiwiSaver when you start, and you can choose to opt out. The company will make at least the compulsory employer contributions.
+
+## Benefits
+
+You will also receive a monthly public transport allowance, a company pension contribution and a learning budget of €1,000 a year.
+
+## Relocation support
+
+To help with your move, we will provide a one-off relocation allowance of €3,000 gross.
+
+## Your right to seek advice
+
+You are entitled to seek independent advice about this offer and the employment agreement, and we will give you reasonable time to do so before you accept.
+
+## Employment agreement
+
+Your employment will be under a written individual employment agreement, which we will give you with this letter. It explains how employment relationship problems can be resolved, including the 90 days within which a personal grievance must be raised.
+
+## Conditions of this offer
+
+This offer depends on:
+
+- proof of your right to work in New Zealand, including a work visa if you need one
+- references that are satisfactory to the company
+
+Please confirm that you accept this offer by signing and returning a copy of this letter and the employment agreement by 30 October 2026. We look forward to working with you.
+
+Yours sincerely,
+
+[For Example Engineering GmbH] [Accepted by the candidate: I accept this offer on the terms set out above.]
+
+Example Engineering GmbH never charges candidates fees."
+`;
+
+exports[`US > reads as expected 1`] = `
+"Offer of employment: Senior Backend Engineer
+
+October 16, 2026
+
+Dear Lena,
+
+We are pleased to offer you the position of Senior Backend Engineer in our Platform team at Example Engineering GmbH. This letter sets out the terms of our offer.
+
+## Your role and start date
+
+You will report to Jonas Becker, Engineering Manager. Your first day of work will be December 1, 2026.
+
+## Place of work
+
+You will work at our Munich office, with up to two days of remote work a week, normally 40 hours a week.
+
+## Compensation
+
+Your starting salary will be $78,000 a year, paid twice a month under the company’s normal payroll practices.
+
+| Component | Gross amount |
+| Annual base salary | $78,000.00 |
+| Each payment (24 a year) | $3,250.00 |
+
+## Overtime status
+
+This position is classified as non-exempt under the Fair Labor Standards Act, which means you will be paid for overtime in line with federal and state law.
+
+## Annual bonus
+
+You will be eligible for an annual bonus of up to 10% of your annual gross salary, based on targets agreed each year, under the terms of the company’s bonus plan in effect at the time.
+
+## Paid time off
+
+You will receive 28 days of paid time off each year, under the company’s time-off policy.
+
+## Benefits
+
+You will be eligible to take part in the company’s benefit plans, including a monthly public transport allowance, a company pension contribution and a learning budget of €1,000 a year, under the terms of each plan.
+
+## Relocation support
+
+To help with your move, we will provide a one-off relocation allowance of €3,000 gross.
+
+## At-will employment
+
+Your employment with Example Engineering GmbH is at will. This means that you or the company may end the employment at any time, with or without cause or notice. Nothing in this letter is a contract for a fixed period of employment.
+
+## Conditions of this offer
+
+This offer depends on:
+
+- your completing Form I-9 and providing documents that show your identity and your authorization to work in the United States, no later than your third day of work
+- references that are satisfactory to the company
+
+To accept this offer, please sign and return a copy of this letter by October 30, 2026. We look forward to working with you.
+
+Sincerely,
+
+[For Example Engineering GmbH] [Accepted by the candidate: I accept this offer on the terms set out above.]
+
+Example Engineering GmbH never charges candidates fees."
+`;
+
+exports[`US-CA > reads as expected 1`] = `
+"Offer of employment: Senior Backend Engineer
+
+October 16, 2026
+
+Dear Lena,
+
+We are pleased to offer you the position of Senior Backend Engineer in our Platform team at Example Engineering GmbH. This letter sets out the terms of our offer.
+
+## Your role and start date
+
+You will report to Jonas Becker, Engineering Manager. Your first day of work will be December 1, 2026.
+
+## Place of work
+
+You will work at our Munich office, with up to two days of remote work a week, normally 40 hours a week.
+
+## Compensation
+
+Your starting salary will be $78,000 a year, paid twice a month under the company’s normal payroll practices.
+
+| Component | Gross amount |
+| Annual base salary | $78,000.00 |
+| Each payment (24 a year) | $3,250.00 |
+
+## Overtime status
+
+This position is classified as non-exempt under the Fair Labor Standards Act, which means you will be paid for overtime in line with federal and state law.
+
+## Annual bonus
+
+You will be eligible for an annual bonus of up to 10% of your annual gross salary, based on targets agreed each year, under the terms of the company’s bonus plan in effect at the time.
+
+## Paid time off
+
+You will receive 28 days of paid time off each year under the company’s time-off policy, as well as paid sick leave as California law requires.
+
+## Benefits
+
+You will be eligible to take part in the company’s benefit plans, including a monthly public transport allowance, a company pension contribution and a learning budget of €1,000 a year, under the terms of each plan.
+
+## Relocation support
+
+To help with your move, we will provide a one-off relocation allowance of €3,000 gross.
+
+## At-will employment
+
+Your employment with Example Engineering GmbH is at will. This means that you or the company may end the employment at any time, with or without cause or notice. Nothing in this letter is a contract for a fixed period of employment.
+
+## Wage notice
+
+With this letter you will receive the Notice to Employee that California Labor Code section 2810.5 requires, which sets out your pay rate and regular payday.
+
+## Conditions of this offer
+
+This offer depends on:
+
+- your completing Form I-9 and providing documents that show your identity and your authorization to work in the United States, no later than your third day of work
+- references that are satisfactory to the company
+
+To accept this offer, please sign and return a copy of this letter by October 30, 2026. We look forward to working with you.
+
+Sincerely,
+
+[For Example Engineering GmbH] [Accepted by the candidate: I accept this offer on the terms set out above.]
+
+Example Engineering GmbH never charges candidates fees."
+`;
+
+exports[`US-NY > reads as expected 1`] = `
+"Offer of employment: Senior Backend Engineer
+
+October 16, 2026
+
+Dear Lena,
+
+We are pleased to offer you the position of Senior Backend Engineer in our Platform team at Example Engineering GmbH. This letter sets out the terms of our offer.
+
+## Your role and start date
+
+You will report to Jonas Becker, Engineering Manager. Your first day of work will be December 1, 2026.
+
+## Place of work
+
+You will work at our Munich office, with up to two days of remote work a week, normally 40 hours a week.
+
+## Compensation
+
+Your starting salary will be $78,000 a year, paid twice a month under the company’s normal payroll practices.
+
+| Component | Gross amount |
+| Annual base salary | $78,000.00 |
+| Each payment (24 a year) | $3,250.00 |
+
+## Overtime status
+
+This position is classified as non-exempt under the Fair Labor Standards Act, which means you will be paid for overtime in line with federal and state law.
+
+## Annual bonus
+
+You will be eligible for an annual bonus of up to 10% of your annual gross salary, based on targets agreed each year, under the terms of the company’s bonus plan in effect at the time.
+
+## Paid time off
+
+You will receive 28 days of paid time off each year, under the company’s time-off policy.
+
+## Benefits
+
+You will be eligible to take part in the company’s benefit plans, including a monthly public transport allowance, a company pension contribution and a learning budget of €1,000 a year, under the terms of each plan.
+
+## Relocation support
+
+To help with your move, we will provide a one-off relocation allowance of €3,000 gross.
+
+## At-will employment
+
+Your employment with Example Engineering GmbH is at will. This means that you or the company may end the employment at any time, with or without cause or notice. Nothing in this letter is a contract for a fixed period of employment.
+
+## Pay notice
+
+With this letter you will receive the written pay notice that New York Labor Law requires at the time of hire. Please sign it to confirm you received it, and return it with this letter.
+
+## Conditions of this offer
+
+This offer depends on:
+
+- your completing Form I-9 and providing documents that show your identity and your authorization to work in the United States, no later than your third day of work
+- references that are satisfactory to the company
+
+To accept this offer, please sign and return a copy of this letter by October 30, 2026. We look forward to working with you.
+
+Sincerely,
+
+[For Example Engineering GmbH] [Accepted by the candidate: I accept this offer on the terms set out above.]
+
+Example Engineering GmbH never charges candidates fees."
+`;

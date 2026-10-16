@@ -1,0 +1,95 @@
+# New Zealand. DRAFT wording for legal review. Nothing here is legal advice.
+jurisdiction: NZ
+clauses:
+  - section: candidate
+    title: Offer of employment
+    body: |
+      Dear {{candidate.greeting_name}},
+
+      We are pleased to offer you the position of {{position.job_title}}{{#if position.department}} in our {{position.department}} team{{/if}} at {{company.legal_name}}. This letter sets out the main terms of our offer. Your individual employment agreement sets out all the terms of your employment.
+
+  - section: position
+    body: |
+      You will report to {{position.reports_to}}. Your employment will begin on {{position.start_date}}{{#if position.contract_type == "fixed_term"}} and is for a fixed term ending on {{position.end_date}}{{/if}}.
+    legal_notes: s.66 Employment Relations Act 2000. The agreement must state the genuine reason for the fixed term and how it will end.
+
+  - section: workplace
+    body: |
+      You will work at {{workplace.location}}. Your hours of work will be {{workplace.hours_per_week}} hours a week.
+
+  - section: compensation
+    title: Salary
+    body: |
+      Your salary will be {{pay.annual_amount}} a year, paid {{pay.frequency_label}}.
+
+      | Component | Gross amount |
+      |---|---:|
+      | Annual salary | {{pay.annual_amount}} |
+      | Each payment ({{pay.instalments}} a year) | {{pay.period_amount}} |
+
+  - section: bonus
+    body: |
+      You will be eligible for an annual bonus of {{bonus.terms}}, under the terms of the company’s bonus scheme in force at the time.
+
+  - section: probation
+    title: Trial period
+    editor_help: A 90-day trial period can only be agreed with someone who hasn’t worked for the company before, and must be in the employment agreement signed before they start.
+    body: |
+      {{#if probation.months == "trial_90"}}Your employment is subject to a trial period of 90 days from your start date, under sections 67A and 67B of the Employment Relations Act 2000. If the company ends your employment during the trial period by giving notice, you will not be able to raise a personal grievance for unjustified dismissal. You keep your other rights, including the right to raise a personal grievance on other grounds.{{else}}There is no trial period.{{/if}}
+    legal_notes: Trial periods available to all employers again since 23 December 2023.
+
+  - section: leave
+    title: Holidays and leave
+    body: |
+      You will receive {{leave.days}} days of paid annual holidays a year, as well as public holidays, sick leave and the other leave in the Holidays Act 2003.
+
+  - section: notice
+    body: |
+      Either party may end the employment by giving {{notice.custom_period}} in writing.
+
+  - section: pension
+    title: KiwiSaver
+    locked: true
+    locked_reason: Included in every New Zealand letter
+    body: |
+      If you are eligible, you will be automatically enrolled in KiwiSaver when you start, and you can choose to opt out. The company will make at least the compulsory employer contributions.{{#if pension.terms}} {{pension.terms}}{{/if}}
+    legal_notes: KiwiSaver Act 2006. Compulsory employer rate rises from 3% (Budget 2025 changes); keep the wording rate-free.
+
+  - section: benefits
+    body: |
+      You will also receive {{benefits.description}}.
+
+  - section: relocation
+    body: |
+      To help with your move, we will provide {{relocation.description}}.
+
+  - section: required_information
+    title: Your right to seek advice
+    locked: true
+    locked_reason: Required in New Zealand
+    body: |
+      You are entitled to seek independent advice about this offer and the employment agreement, and we will give you reasonable time to do so before you accept.
+    legal_notes: s.63A Employment Relations Act 2000.
+
+  - section: written_terms
+    title: Employment agreement
+    locked: true
+    locked_reason: Required in New Zealand
+    body: |
+      Your employment will be under a written individual employment agreement, which we will give you with this letter. It explains how employment relationship problems can be resolved, including the 90 days within which a personal grievance must be raised.
+    legal_notes: s.65 and s.114 Employment Relations Act 2000.
+
+  - section: conditions
+    body: |
+      {{#if conditions.right_to_work or conditions.references or conditions.background_check}}This offer depends on:
+
+      {{#if conditions.right_to_work}}- proof of your right to work in New Zealand, including a work visa if you need one
+      {{/if}}{{#if conditions.references}}- references that are satisfactory to the company
+      {{/if}}{{#if conditions.background_check}}- a satisfactory background check, carried out with your consent
+      {{/if}}{{/if}}
+
+  - section: acceptance
+    body: |
+      Please confirm that you accept this offer by signing and returning a copy of this letter and the employment agreement by {{acceptance.reply_by}}. We look forward to working with you.
+
+      Yours sincerely,

@@ -1,0 +1,93 @@
+# Australia. DRAFT wording for legal review. Nothing here is legal advice.
+jurisdiction: AU
+clauses:
+  - section: candidate
+    title: Offer of employment
+    body: |
+      Dear {{candidate.greeting_name}},
+
+      We are pleased to offer you employment as {{position.job_title}}{{#if position.department}} in our {{position.department}} team{{/if}} with {{company.legal_name}}. This letter sets out the terms of our offer.
+
+  - section: position
+    body: |
+      You will report to {{position.reports_to}}. Your employment will begin on {{position.start_date}}{{#if position.contract_type == "fixed_term"}} and is for a fixed term ending on {{position.end_date}}{{/if}}.
+    legal_notes: Fair Work Act limits on fixed-term contracts (from 6 December 2023), e.g. no more than two years or two renewals in most cases.
+
+  - section: workplace
+    body: |
+      You will work at {{workplace.location}}. Your ordinary hours of work will be {{workplace.hours_per_week}} hours a week, plus reasonable additional hours.
+    legal_notes: NES maximum weekly hours (s.62 Fair Work Act).
+
+  - section: compensation
+    title: Remuneration
+    body: |
+      Your base salary will be {{pay.annual_amount}} a year, plus superannuation, paid {{pay.frequency_label}}.
+
+      | Component | Gross amount |
+      |---|---:|
+      | Annual base salary (without superannuation) | {{pay.annual_amount}} |
+      | Each payment ({{pay.instalments}} a year) | {{pay.period_amount}} |
+
+  - section: bonus
+    body: |
+      You will be eligible for an annual bonus of {{bonus.terms}}, under the terms of the company’s bonus plan in effect at the time.
+
+  - section: probation
+    editor_help: The minimum employment period for unfair dismissal claims is 6 months (12 months for small businesses).
+    body: |
+      {{#if probation.months == "0"}}There is no probation period.{{else}}The first {{probation.months}} of your employment will be a probation period. During this time either party may end the employment by giving one week’s notice, or the notice required by the National Employment Standards or an applicable award if that is longer.{{/if}}
+
+  - section: leave
+    title: Leave
+    body: |
+      You will receive {{leave.days}} days of paid annual leave each year, together with personal/carer’s leave and the other leave in the National Employment Standards.
+
+  - section: notice
+    body: |
+      {{#if notice.option == "custom"}}After probation, either party may end the employment by giving {{notice.custom_period}} in writing, or the minimum notice in the National Employment Standards or an applicable award if that is longer.{{else}}After probation, either party may end the employment by giving notice in writing. The company will give you at least the notice required by the National Employment Standards, which depends on your length of service and age.{{/if}}
+    legal_notes: s.117 Fair Work Act. Employee notice is set by the award or contract.
+
+  - section: pension
+    title: Superannuation
+    locked: true
+    locked_reason: Included in every Australian letter
+    body: |
+      The company will make superannuation contributions for you at the rate required by superannuation guarantee law, into the fund you choose. If you don’t choose a fund, we will pay into your existing (stapled) fund or our default fund.{{#if pension.terms}} {{pension.terms}}{{/if}}
+    legal_notes: Stapled fund requirements from 1 November 2021. Check Payday Super timing.
+
+  - section: benefits
+    body: |
+      You will also receive {{benefits.description}}.
+
+  - section: relocation
+    body: |
+      To help with your move, we will provide {{relocation.description}}.
+
+  - section: collective_agreement
+    title: Modern award
+    editor_help: Name the modern award or enterprise agreement that covers the role. Remove this section if the role is award-free.
+    body: |
+      Your employment is covered by the {{collective.name}}. If anything in this letter is less favourable to you than the award or agreement, the award or agreement applies.
+
+  - section: required_information
+    title: Information statements
+    locked: true
+    locked_reason: Required in Australia
+    body: |
+      With this letter you will receive the Fair Work Information Statement{{#if position.contract_type == "fixed_term"}} and the Fixed Term Contract Information Statement{{/if}}, which explain your rights at work.
+    legal_notes: s.125 and s.333K Fair Work Act. Casual employees also need the Casual Employment Information Statement (casual offers aren't supported yet).
+
+  - section: conditions
+    body: |
+      {{#if conditions.right_to_work or conditions.references or conditions.background_check}}This offer depends on:
+
+      {{#if conditions.right_to_work}}- proof of your right to work in Australia
+      {{/if}}{{#if conditions.references}}- references that are satisfactory to the company
+      {{/if}}{{#if conditions.background_check}}- a satisfactory background check, carried out with your consent
+      {{/if}}{{/if}}
+
+  - section: acceptance
+    body: |
+      Please confirm that you accept this offer by signing and returning a copy of this letter by {{acceptance.reply_by}}. We look forward to working with you.
+
+      Yours sincerely,

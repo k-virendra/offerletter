@@ -1,0 +1,23 @@
+# Letter sections in default order. always_included sections can't be removed in any country; others can be
+# removed unless a country's clause marks them locked (for example "Required in Australia").
+# short_title labels sections in compact styles (Minimal). show_heading: false for the opening and the signatures,
+# which read as part of the letter. varies_by_country shows a country badge in the editor.
+# The candidate section opens the letter: its clause title is the letter's title ("Offer of employment").
+- { key: candidate, default_title: Candidate, default_order: 10, always_included: true, show_heading: false, help_text: Who the letter is addressed to. }
+- { key: position, default_title: Your role and start date, short_title: Role, default_order: 20, always_included: true }
+- { key: workplace, default_title: Place of work and hours, short_title: Workplace, default_order: 30, varies_by_country: true }
+- { key: compensation, default_title: Salary, short_title: Salary, default_order: 40, always_included: true }
+- { key: employment_status, default_title: Employment status, short_title: Status, default_order: 45, varies_by_country: true }
+- { key: bonus, default_title: Annual bonus, short_title: Bonus, default_order: 50 }
+- { key: probation, default_title: Probation, short_title: Probation, default_order: 60, varies_by_country: true }
+- { key: leave, default_title: Holiday and leave, short_title: Holiday, default_order: 70, varies_by_country: true }
+- { key: notice, default_title: Notice periods, short_title: Notice, default_order: 80, varies_by_country: true }
+- { key: pension, default_title: Pension, short_title: Pension, default_order: 90, varies_by_country: true }
+- { key: benefits, default_title: Benefits, short_title: Benefits, default_order: 100 }
+- { key: relocation, default_title: Relocation support, short_title: Relocation, default_order: 110 }
+- { key: at_will, default_title: At-will employment, short_title: At will, default_order: 120, varies_by_country: true }
+- { key: required_information, default_title: Information we must give you, short_title: Notices, default_order: 130, varies_by_country: true }
+- { key: written_terms, default_title: Written terms of employment, short_title: Written terms, default_order: 140, varies_by_country: true }
+- { key: collective_agreement, default_title: Collective agreement, short_title: Agreement, default_order: 125, varies_by_country: true, help_text: Name the collective agreement or award that covers the role. Remove this section if none applies. }
+- { key: conditions, default_title: Conditions of this offer, short_title: Conditions, default_order: 150 }
+- { key: acceptance, default_title: Reply and signatures, default_order: 200, always_included: true, show_heading: false }

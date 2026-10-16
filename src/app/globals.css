@@ -1,0 +1,122 @@
+@import "tailwindcss";
+
+/* Design tokens from the approved design (Design tokens board). */
+@theme {
+  --color-evergreen-50: #e3f1ec;
+  --color-evergreen-100: #cfe6e0;
+  --color-evergreen-600: #0f6e5f;
+  --color-evergreen-700: #0a5246;
+  --color-marigold-100: #fcefd2;
+  --color-marigold-500: #f0b43c;
+  --color-marigold-700: #9a6400;
+  --color-marigold-800: #6b4500;
+  --color-chip: #fdf0d0;
+  --color-ink: #14181f;
+  --color-ink-2: #3d4451;
+  --color-muted: #5b6472;
+  --color-control: #858c95;
+  --color-line: #e3e3de;
+  --color-line-soft: #eeeee9;
+  --color-canvas: #f7f7f4;
+  --color-desk: #e6efeb;
+  --color-hover-soft: #eef5f2;
+  --color-ghost-hover: #f1f3f1;
+  --color-neutral-chip: #ecede9;
+  --color-danger: #b42318;
+  --color-danger-700: #8f1c13;
+  --color-danger-50: #fdecea;
+  --color-info: #1f5bb8;
+  --color-info-50: #e4ecfa;
+  --shadow-card: 0 1px 2px rgb(20 24 31 / 0.05);
+  --shadow-popover: 0 8px 24px rgb(20 24 31 / 0.12);
+  --shadow-toast: 0 10px 28px rgb(20 24 31 / 0.28);
+  --shadow-paper: 0 1px 3px rgb(20 24 31 / 0.1), 0 14px 36px rgb(15 110 95 / 0.14);
+}
+
+@theme inline {
+  --font-sans: var(--font-plex), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: var(--font-newsreader), "Iowan Old Style", Georgia, serif;
+  --font-serif: var(--font-source-serif), Georgia, "Times New Roman", serif;
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-canvas font-sans text-ink antialiased;
+  }
+  :focus-visible {
+    outline: 3px solid var(--color-evergreen-600);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: var(--color-evergreen-100);
+  }
+  input,
+  textarea,
+  select,
+  button {
+    font: inherit;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* Letter pages (live preview and PDF). Sizes are CSS pixels at 96 dpi: A4 is 794 × 1123, US Letter 816 × 1056. */
+@layer components {
+  .letter-page {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-sizing: border-box;
+    background: #ffffff;
+    -webkit-font-smoothing: antialiased;
+    font-kerning: normal;
+  }
+  .letter-page h1,
+  .letter-page h2 {
+    text-wrap: balance;
+  }
+  /* Empty required fields in the preview. */
+  .letter-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 6px;
+    border: 1px dashed var(--color-marigold-700);
+    border-radius: 4px;
+    background: var(--color-chip);
+    color: var(--color-marigold-800);
+    font-family: var(--font-sans);
+    font-size: 12.5px;
+    font-weight: 600;
+    font-style: normal;
+    letter-spacing: 0;
+    text-transform: none;
+    line-height: 20px;
+    vertical-align: baseline;
+  }
+  button.letter-chip {
+    cursor: pointer;
+  }
+  button.letter-chip:hover {
+    background: #fbe3a6;
+  }
+}
+
+/* The live preview is never the real letter: app screens are hidden from the browser's print command.
+   (The server-side PDF render page doesn't carry this attribute.) */
+@media print {
+  [data-no-print] {
+    display: none !important;
+  }
+}

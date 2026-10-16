@@ -1,0 +1,25 @@
+# Ontario. Only what differs from ca.yaml. DRAFT wording for legal review. Nothing here is legal advice.
+jurisdiction: CA-ON
+clauses:
+  - section: probation
+    title: Probationary period
+    editor_help: Under Ontario’s Employment Standards Act, 2000, termination notice applies after three months of employment.
+    body: |
+      {{#if probation.months == "0"}}There is no probationary period.{{else}}The first {{probation.months}} of your employment will be a probationary period, during which the company will assess your fit for the role.{{/if}}
+
+  - section: leave
+    title: Vacation and public holidays
+    body: |
+      You will receive {{leave.days}} days of paid vacation a year, and at least the vacation time and vacation pay required by the Employment Standards Act, 2000. You will also be entitled to Ontario’s public holidays.
+
+  - section: notice
+    title: Ending your employment
+    body: |
+      {{#if notice.option == "custom"}}After the probationary period, either party may end the employment by giving {{notice.custom_period}} in writing. The company will never give you less than the notice or pay in lieu of notice, benefits continuation and severance pay required by the Employment Standards Act, 2000.{{else}}If your employment is ended without cause after the probationary period, the company will give you the notice or pay in lieu of notice, benefits continuation and any severance pay required by the Employment Standards Act, 2000.{{/if}}
+    legal_notes: Ontario courts strike down termination clauses that could breach the ESA in any scenario (Waksdale v Swegon, 2020; Dufault v Ignace, 2024). Ontario counsel must review before approval.
+
+  - section: required_information
+    title: Employment standards information
+    body: |
+      With this letter you will receive a copy of the Employment Standards in Ontario poster, as the Act requires.
+    legal_notes: "ESA s.2(8). Employers with 25+ employees must also give certain written information before the first day (Working for Workers Five Act, 2024). Confirm."

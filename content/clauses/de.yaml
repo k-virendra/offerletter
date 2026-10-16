@@ -1,0 +1,94 @@
+# Germany. DRAFT wording for legal review. Nothing here is legal advice.
+jurisdiction: DE
+clauses:
+  - section: candidate
+    title: Offer of employment
+    body: |
+      Dear {{candidate.greeting_name}},
+
+      We are delighted to offer you the position of {{position.job_title}}{{#if position.department}} in our {{position.department}} team{{/if}} at {{company.legal_name}}. This letter sets out the main terms of our offer. Your employment contract will confirm these and the remaining terms in writing.
+
+  - section: position
+    body: |
+      You will report to {{position.reports_to}}. Your employment will begin on {{position.start_date}}{{#if position.contract_type == "fixed_term"}} and is for a fixed term ending on {{position.end_date}}{{/if}}.
+    legal_notes: Fixed terms need the written form of §14(4) TzBfG (wet signature before the start) and, after 2 years, an objective reason.
+
+  - section: workplace
+    editor_help: The Nachweisgesetz requires the place of work and working hours in the written terms.
+    body: |
+      Your place of work will be {{workplace.location}}. Your regular working time will be {{workplace.hours_per_week}} hours a week, Monday to Friday.
+
+  - section: compensation
+    title: Salary
+    body: |
+      Your {{#if pay.period == "month"}}monthly{{else}}annual{{/if}} gross salary will be {{pay.base_amount}}, paid in {{pay.instalments}} equal instalments at the end of each month.
+
+      | Component | Gross amount |
+      |---|---:|
+      | Annual salary | {{pay.annual_amount}} |
+      | Each instalment ({{pay.instalments}} a year) | {{pay.period_amount}} |
+
+  - section: bonus
+    body: |
+      You will be eligible for an annual bonus of {{bonus.terms}}. The rules of the bonus scheme in force at the time apply.
+
+  - section: probation
+    editor_help: German law allows a probation period of up to 6 months.
+    body: |
+      {{#if probation.months == "0"}}There is no probation period.{{else}}The first {{probation.months}} of your employment are a probation period. During probation, either party may end the employment with two weeks’ notice.{{/if}}
+
+  - section: leave
+    title: Holiday
+    body: |
+      You will receive {{leave.days}} working days of paid holiday in each calendar year, based on a five-day week. This includes your statutory minimum holiday.
+
+  - section: notice
+    locked: true
+    locked_reason: Required in Germany
+    editor_help: Germany requires notice periods in the written terms of employment.
+    body: |
+      {{#if notice.option == "custom"}}After probation, either party may end the employment with {{notice.custom_period}}. Notice must be given in writing.{{else}}After probation, the notice periods in section 622 of the German Civil Code (BGB) apply. Any longer notice period that applies to the company also applies to you. Notice must be given in writing.{{/if}}
+
+  - section: pension
+    title: Company pension
+    body: |
+      You may convert part of your salary into a company pension (Entgeltumwandlung) under the Company Pensions Act (BetrAVG).{{#if pension.terms}} {{pension.terms}}{{/if}}
+    legal_notes: Employers must add 15% to converted salary where they save social security contributions (§1a(1a) BetrAVG).
+
+  - section: benefits
+    body: |
+      You will also receive {{benefits.description}}.
+
+  - section: relocation
+    body: |
+      To help with your move, we will provide {{relocation.description}}.
+
+  - section: required_information
+    title: Advice for workers from outside the EU
+    editor_help: Tick the box below if the candidate isn’t an EU, EEA or Swiss citizen.
+    body: |
+      {{#if info.third_country_national}}You can get free and confidential advice about your rights at work in Germany, in several languages, from the counselling service Faire Integration (www.faire-integration.de).{{/if}}
+    legal_notes: Confirm the statutory duty to point third-country nationals to Faire Integration (Aufenthaltsgesetz) and its timing.
+
+  - section: written_terms
+    locked: true
+    locked_reason: Required in Germany
+    editor_help: The Nachweisgesetz requires the essential terms of employment in writing.
+    body: |
+      You will receive the written record of your essential terms of employment that the Nachweisgesetz requires with your employment contract.
+    legal_notes: NachwG as amended in 2022 (some terms on day one, others within 7 days or a month). Check the form rules after the 2025 Bürokratieentlastungsgesetz IV.
+
+  - section: conditions
+    body: |
+      {{#if conditions.right_to_work or conditions.references or conditions.background_check}}This offer depends on:
+
+      {{#if conditions.right_to_work}}- proof of your right to work in Germany before your start date
+      {{/if}}{{#if conditions.references}}- references that are satisfactory to the company
+      {{/if}}{{#if conditions.background_check}}- a satisfactory background check, carried out with your consent
+      {{/if}}{{/if}}
+
+  - section: acceptance
+    body: |
+      Please confirm that you accept this offer by signing and returning a copy of this letter by {{acceptance.reply_by}}. We look forward to welcoming you to the team.
+
+      Yours sincerely,

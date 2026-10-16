@@ -1,0 +1,224 @@
+# Placeholders used in clauses as {{key}}. Labels and help text are what users see in the editor form.
+# Never add fields for passport, social security, tax or other government ID numbers (the database refuses them).
+# jurisdictions limits a field to some countries (a country includes its states and provinces).
+# jurisdiction_overrides change label, help_text, required, options, validation or default_value per country code;
+# a parent's override (US) also applies to its children (US-NY) unless they override it again.
+# An empty value that a clause shows outside an {{#if}} appears as a chip in the preview and blocks payment, so a
+# section's core field is required: either fill it in or remove the section.
+
+# Candidate
+- { key: candidate.full_name, section_key: candidate, label: Full name, type: text, required: true, sort_order: 10, validation: { max_length: 120 } }
+- { key: candidate.greeting_name, section_key: candidate, label: Name in greeting, type: text, required: true, sort_order: 20, help_text: Shown after “Dear”., validation: { max_length: 80 } }
+- { key: candidate.address, section_key: candidate, label: Postal address, type: address, sort_order: 30, help_text: Leave empty to leave it out of the letter., validation: { max_length: 300 } }
+
+# Role
+- { key: position.job_title, section_key: position, label: Job title, type: text, required: true, sort_order: 10, validation: { max_length: 120 } }
+- { key: position.department, section_key: position, label: Team or department, type: text, sort_order: 20, help_text: Leave empty to leave it out., validation: { max_length: 120 } }
+- { key: position.reports_to, section_key: position, label: Reports to, type: text, required: true, sort_order: 30, placeholder: Name and job title, validation: { max_length: 160 } }
+- { key: position.start_date, section_key: position, label: Start date, type: date, required: true, sort_order: 40, validation: { future: true } }
+# US offers are at will, so they have no contract type.
+- key: position.contract_type
+  section_key: position
+  label: Contract
+  type: select
+  required: true
+  sort_order: 50
+  default_value: permanent
+  jurisdictions: [DE, IE, NL, GB, AU, NZ, CA]
+  options: [{ value: permanent, label: Permanent }, { value: fixed_term, label: Fixed term }]
+  jurisdiction_overrides:
+    NZ: { help_text: "A fixed term needs a genuine reason, written into the employment agreement." }
+- { key: position.end_date, section_key: position, label: Fixed term ends on, type: date, sort_order: 60, help_text: Only for fixed-term contracts., jurisdictions: [DE, IE, NL, GB, AU, NZ, CA], validation: { future: true } }
+
+# Workplace
+- { key: workplace.location, section_key: workplace, label: Place of work, type: text, required: true, sort_order: 10, placeholder: "e.g. our Munich office, with up to two days of remote work a week", validation: { max_length: 200 } }
+- key: workplace.hours_per_week
+  section_key: workplace
+  label: Hours per week
+  type: number
+  required: true
+  sort_order: 20
+  validation: { min: 1, max: 60, step: 0.5 }
+  jurisdiction_overrides:
+    US: { required: false, help_text: Optional. Leave empty to leave it out. }
+    AU: { help_text: "Full-time ordinary hours are at most 38 a week under the National Employment Standards.", validation: { max: 38 } }
+
+# Pay
+- key: pay.base_amount
+  section_key: compensation
+  label: Base salary
+  type: money
+  required: true
+  sort_order: 10
+  validation: { min: 1, max: 100000000 }
+- key: pay.period
+  section_key: compensation
+  label: Amount is per
+  type: select
+  required: true
+  sort_order: 20
+  default_value: year
+  options: [{ value: year, label: Year }, { value: month, label: Month }]
+- key: pay.frequency
+  section_key: compensation
+  label: Paid
+  type: select
+  required: true
+  sort_order: 30
+  default_value: monthly
+  options:
+    - { value: monthly, label: Monthly }
+    - { value: semi_monthly, label: Twice a month }
+    - { value: bi_weekly, label: Every two weeks }
+    - { value: weekly, label: Weekly }
+  jurisdiction_overrides:
+    DE: { options: [{ value: monthly, label: Monthly }], help_text: Salaries in Germany are paid monthly. }
+    NL: { options: [{ value: monthly, label: Monthly }], help_text: Salaries in the Netherlands are paid monthly. }
+    IE: { options: [{ value: monthly, label: Monthly }, { value: bi_weekly, label: Every two weeks }, { value: weekly, label: Weekly }] }
+    GB: { options: [{ value: monthly, label: Monthly }, { value: weekly, label: Weekly }] }
+    AU: { default_value: bi_weekly, options: [{ value: weekly, label: Weekly }, { value: bi_weekly, label: Fortnightly }, { value: monthly, label: Monthly }] }
+    NZ: { default_value: bi_weekly, options: [{ value: weekly, label: Weekly }, { value: bi_weekly, label: Fortnightly }, { value: monthly, label: Monthly }] }
+    CA: { default_value: bi_weekly, options: [{ value: bi_weekly, label: Every two weeks }, { value: semi_monthly, label: Twice a month }, { value: monthly, label: Monthly }, { value: weekly, label: Weekly }] }
+    US: { default_value: semi_monthly }
+
+# Employment status
+- key: employment.flsa_status
+  section_key: employment_status
+  label: Overtime status
+  type: select
+  required: true
+  sort_order: 10
+  jurisdictions: [US]
+  help_text: Exempt or non-exempt under the Fair Labor Standards Act.
+  options: [{ value: exempt, label: Exempt (no overtime pay) }, { value: non_exempt, label: Non-exempt (overtime paid) }]
+
+# Optional sections
+- { key: bonus.terms, section_key: bonus, label: Bonus terms, type: long_text, required: true, sort_order: 10, placeholder: "e.g. up to 10% of your annual gross salary, based on targets agreed each year", validation: { max_length: 600 } }
+- key: probation.months
+  section_key: probation
+  label: Probation length
+  type: select
+  required: true
+  sort_order: 10
+  default_value: "6"
+  options: [{ value: "6", label: 6 months }, { value: "3", label: 3 months }, { value: "0", label: No probation }]
+  jurisdiction_overrides:
+    NL:
+      label: Probation (proeftijd)
+      default_value: "2"
+      options: [{ value: "2", label: 2 months }, { value: "1", label: 1 month }, { value: "0", label: No probation }]
+    NZ:
+      label: Trial period
+      default_value: "0"
+      options: [{ value: trial_90, label: 90-day trial period }, { value: "0", label: No trial period }]
+    CA:
+      default_value: "3"
+      options: [{ value: "3", label: 3 months }, { value: "6", label: 6 months }, { value: "0", label: No probation }]
+- key: leave.days
+  section_key: leave
+  label: Paid holiday (working days a year)
+  type: number
+  required: true
+  sort_order: 10
+  validation: { min: 0, max: 60 }
+  jurisdiction_overrides:
+    DE: { help_text: The legal minimum is 20 working days on a five-day week., validation: { min: 20 } }
+    IE: { label: Paid annual leave (working days a year), help_text: The legal minimum is 4 working weeks (20 days on a five-day week)., validation: { min: 20 } }
+    NL: { help_text: The legal minimum is four times the weekly working hours (20 days for a full-time week)., validation: { min: 20 } }
+    GB: { help_text: The legal minimum is 5.6 weeks (28 days on a five-day week) and can include bank holidays., validation: { min: 20 } }
+    AU: { label: Paid annual leave (days a year), help_text: The National Employment Standards give at least 4 weeks (20 days for full-time)., validation: { min: 20 } }
+    NZ: { label: Annual holidays (days a year), help_text: The Holidays Act gives at least 4 weeks after 12 months’ employment., validation: { min: 20 } }
+    CA: { label: Paid vacation (days a year), help_text: Provincial law gives at least 2 weeks after a year; more after 5 years., validation: { min: 10 } }
+    US: { label: Paid time off (days a year) }
+- key: leave.public_holidays
+  section_key: leave
+  label: Bank holidays
+  type: select
+  required: true
+  sort_order: 20
+  default_value: in_addition
+  jurisdictions: [GB]
+  options: [{ value: in_addition, label: On top of these days }, { value: included, label: Included in these days }]
+- key: notice.option
+  section_key: notice
+  label: Notice after probation
+  type: select
+  required: true
+  sort_order: 10
+  default_value: statutory
+  options: [{ value: statutory, label: Statutory periods }, { value: custom, label: Agreed period }]
+  jurisdiction_overrides:
+    DE: { options: [{ value: statutory, label: "Statutory periods (BGB §622)" }, { value: custom, label: Agreed period }] }
+    NZ: { label: Notice, default_value: custom, options: [{ value: custom, label: Agreed period }], help_text: New Zealand has no statutory notice period; the agreement sets it. }
+- key: notice.custom_period
+  section_key: notice
+  label: Agreed notice period
+  type: text
+  sort_order: 20
+  placeholder: "e.g. three months’ notice to the end of a calendar month"
+  help_text: Only used with an agreed period.
+  validation: { max_length: 120 }
+  jurisdiction_overrides:
+    NZ: { required: true, help_text: "e.g. four weeks’ notice" }
+- key: pension.terms
+  section_key: pension
+  label: Pension details
+  type: long_text
+  required: true
+  sort_order: 10
+  validation: { max_length: 600 }
+  jurisdiction_overrides:
+    DE: { required: false, help_text: Optional. Add any employer contribution to the company pension. }
+    GB: { required: false, help_text: Optional. Add the scheme and employer contribution if you pay more than the minimum. }
+    AU: { required: false, help_text: Optional. Add anything on top of the superannuation guarantee. }
+    NZ: { required: false, help_text: Optional. Add any employer contribution above the compulsory rate. }
+    CA: { help_text: "e.g. a group RRSP with matching contributions of up to 4% of salary" }
+- key: benefits.description
+  section_key: benefits
+  label: Benefits
+  type: long_text
+  required: true
+  sort_order: 10
+  placeholder: "e.g. a monthly public transport allowance and a learning budget of €1,000 a year"
+  validation: { max_length: 800 }
+  jurisdiction_overrides:
+    US: { required: false, help_text: "Optional, e.g. medical, dental and vision insurance and the 401(k) plan." }
+- { key: relocation.description, section_key: relocation, label: Relocation support, type: long_text, required: true, sort_order: 10, placeholder: "e.g. a one-off relocation allowance of €3,000 gross", validation: { max_length: 600 } }
+- key: collective.name
+  section_key: collective_agreement
+  label: Collective agreement
+  type: text
+  required: true
+  sort_order: 10
+  validation: { max_length: 200 }
+  jurisdiction_overrides:
+    NL: { label: Collective labour agreement (CAO), help_text: "e.g. CAO voor de Metaal en Techniek" }
+    AU: { label: Modern award or enterprise agreement, help_text: "e.g. Professional Employees Award 2020" }
+
+# Information the law requires
+- key: info.third_country_national
+  section_key: required_information
+  label: The candidate isn’t an EU, EEA or Swiss citizen
+  type: yes_no
+  sort_order: 10
+  jurisdictions: [DE]
+  help_text: Adds a note about Faire Integration, the free counselling service for workers from outside the EU.
+
+# Conditions
+- key: conditions.right_to_work
+  section_key: conditions
+  label: Depends on proof of the right to work
+  type: yes_no
+  sort_order: 10
+  default_value: true
+  jurisdiction_overrides:
+    DE: { label: Depends on proof of the right to work in Germany }
+    US: { label: Depends on Form I-9 work authorization }
+- { key: conditions.references, section_key: conditions, label: Depends on satisfactory references, type: yes_no, sort_order: 20, default_value: true }
+- { key: conditions.background_check, section_key: conditions, label: Depends on a background check, type: yes_no, sort_order: 30 }
+
+# Reply and signatures
+- { key: acceptance.reply_by, section_key: acceptance, label: Reply by, type: date, required: true, sort_order: 10, validation: { future: true } }
+- { key: acceptance.place, section_key: acceptance, label: Place of signing, type: text, required: true, sort_order: 20, placeholder: "e.g. Munich", validation: { max_length: 80 } }
+- { key: signatory.name, section_key: acceptance, label: Signed by, type: text, required: true, sort_order: 30, help_text: Filled in from the company. Change it for this letter only., validation: { max_length: 120 } }
+- { key: signatory.title, section_key: acceptance, label: Signatory’s job title, type: text, required: true, sort_order: 40, validation: { max_length: 120 } }

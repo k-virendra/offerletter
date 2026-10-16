@@ -1,0 +1,19 @@
+# Alberta. Only what differs from ca.yaml. DRAFT wording for legal review. Nothing here is legal advice.
+jurisdiction: CA-AB
+clauses:
+  - section: probation
+    title: Probationary period
+    editor_help: In Alberta, termination notice applies after 90 days of employment.
+    body: |
+      {{#if probation.months == "0"}}There is no probationary period.{{else}}The first {{probation.months}} of your employment will be a probationary period, during which the company will assess your fit for the role.{{/if}}
+
+  - section: leave
+    title: Vacation and general holidays
+    body: |
+      You will receive {{leave.days}} days of paid vacation a year, and at least the vacation time and vacation pay required by the Employment Standards Code. You will also be entitled to Alberta’s general holidays.
+
+  - section: notice
+    title: Ending your employment
+    body: |
+      {{#if notice.option == "custom"}}After the probationary period, either party may end the employment by giving {{notice.custom_period}} in writing. The company will never give you less than the notice or pay in lieu of notice required by the Employment Standards Code.{{else}}If your employment is ended without cause after the probationary period, the company will give you at least the notice or pay in lieu of notice required by the Employment Standards Code.{{/if}}
+    legal_notes: ESC s.56. Check enforceability of termination clauses against common-law reasonable notice.

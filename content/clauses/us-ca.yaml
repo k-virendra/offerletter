@@ -1,0 +1,17 @@
+# California. Only what differs from the federal wording in us.yaml. DRAFT wording for legal review.
+jurisdiction: US-CA
+clauses:
+  - section: leave
+    title: Paid time off
+    body: |
+      You will receive {{leave.days}} days of paid time off each year under the company’s time-off policy, as well as paid sick leave as California law requires.
+    legal_notes: Labor Code §246 (at least 40 hours or 5 days of paid sick leave from 2024).
+
+  - section: required_information
+    title: Wage notice
+    locked: true
+    locked_reason: Required in California
+    editor_help: Non-exempt employees must receive the Labor Code section 2810.5 Notice to Employee at hire.
+    body: |
+      {{#if employment.flsa_status == "non_exempt"}}With this letter you will receive the Notice to Employee that California Labor Code section 2810.5 requires, which sets out your pay rate and regular payday.{{/if}}
+    legal_notes: Non-compete clauses are void in California (B&P Code §16600, SB 699 and AB 1076 from 2024). Never add one to California letters.

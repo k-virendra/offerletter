@@ -1,0 +1,19 @@
+# British Columbia. Only what differs from ca.yaml. DRAFT wording for legal review. Nothing here is legal advice.
+jurisdiction: CA-BC
+clauses:
+  - section: probation
+    title: Probationary period
+    editor_help: In British Columbia, written notice or compensation is required after three consecutive months of employment.
+    body: |
+      {{#if probation.months == "0"}}There is no probationary period.{{else}}The first {{probation.months}} of your employment will be a probationary period, during which the company will assess your fit for the role.{{/if}}
+
+  - section: leave
+    title: Vacation and statutory holidays
+    body: |
+      You will receive {{leave.days}} days of paid vacation a year, and at least the vacation time and vacation pay required by the Employment Standards Act. You will also be entitled to British Columbia’s statutory holidays.
+
+  - section: notice
+    title: Ending your employment
+    body: |
+      {{#if notice.option == "custom"}}After the probationary period, either party may end the employment by giving {{notice.custom_period}} in writing. The company will never give you less than the written notice or compensation required by the Employment Standards Act.{{else}}If your employment is ended without cause after the probationary period, the company will give you at least the written notice or compensation required by the Employment Standards Act.{{/if}}
+    legal_notes: ESA s.63. Check enforceability of termination clauses against common-law reasonable notice.

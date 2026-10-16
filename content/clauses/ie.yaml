@@ -1,0 +1,84 @@
+# Ireland. DRAFT wording for legal review. Nothing here is legal advice.
+jurisdiction: IE
+clauses:
+  - section: candidate
+    title: Offer of employment
+    body: |
+      Dear {{candidate.greeting_name}},
+
+      We are delighted to offer you the position of {{position.job_title}}{{#if position.department}} in our {{position.department}} team{{/if}} at {{company.legal_name}}. This letter sets out the main terms of our offer. Your contract of employment will confirm these and the remaining terms in writing.
+
+  - section: position
+    body: |
+      You will report to {{position.reports_to}}. Your employment will begin on {{position.start_date}}{{#if position.contract_type == "fixed_term"}} and is for a fixed term ending on {{position.end_date}}{{/if}}.
+    legal_notes: Fixed-term contracts must state the objective reason for renewals (Protection of Employees (Fixed-Term Work) Act 2003).
+
+  - section: workplace
+    body: |
+      Your place of work will be {{workplace.location}}. Your normal working hours will be {{workplace.hours_per_week}} hours a week.
+
+  - section: compensation
+    title: Salary
+    body: |
+      Your gross salary will be {{pay.base_amount}} a {{#if pay.period == "month"}}month{{else}}year{{/if}}, paid {{pay.frequency_label}} by bank transfer.
+
+      | Component | Gross amount |
+      |---|---:|
+      | Annual salary | {{pay.annual_amount}} |
+      | Each payment ({{pay.instalments}} a year) | {{pay.period_amount}} |
+
+  - section: bonus
+    body: |
+      You will be eligible for an annual bonus of {{bonus.terms}}. The rules of the bonus scheme in force at the time apply.
+
+  - section: probation
+    editor_help: In Ireland, probation can last up to 6 months (up to 12 months only in exceptional circumstances).
+    body: |
+      {{#if probation.months == "0"}}There is no probation period.{{else}}Your employment starts with a probation period of {{probation.months}}. During probation, either party may end the employment by giving one week’s notice in writing.{{/if}}
+    legal_notes: Probation limits from the European Union (Transparent and Predictable Working Conditions) Regulations 2022.
+
+  - section: leave
+    title: Annual leave
+    body: |
+      You will receive {{leave.days}} working days of paid annual leave in each leave year, in addition to public holidays. This includes your entitlement under the Organisation of Working Time Act 1997.
+
+  - section: notice
+    body: |
+      {{#if notice.option == "custom"}}After probation, either party may end the employment by giving {{notice.custom_period}} in writing, and never less than the minimum notice that applies by law.{{else}}After probation, either party may end the employment by giving notice in writing. The company will give you at least the minimum notice in the Minimum Notice and Terms of Employment Acts 1973 to 2005, which depends on your length of service. You must give at least one week’s notice.{{/if}}
+
+  - section: pension
+    editor_help: Describe any company pension scheme. Check whether the national automatic enrolment scheme applies to this employee.
+    body: |
+      {{pension.terms}}
+    legal_notes: Automatic Enrolment Retirement Savings System Act 2024 (My Future Fund, from 1 January 2026). Confirm the wording for employees outside a qualifying company scheme.
+
+  - section: benefits
+    body: |
+      You will also receive {{benefits.description}}.
+
+  - section: relocation
+    body: |
+      To help with your move, we will provide {{relocation.description}}.
+
+  - section: written_terms
+    locked: true
+    locked_reason: Required in Ireland
+    editor_help: Irish law requires the core terms in writing within 5 days of the start, and the rest within a month.
+    body: |
+      Within five days of your start date you will receive a written statement of the core terms of your employment, and a statement of the remaining terms within one month, as the Terms of Employment (Information) Acts require.
+    legal_notes: Deadlines from the Employment (Miscellaneous Provisions) Act 2018 (5 days) and S.I. 686/2022 (one month). Confirm.
+
+  - section: conditions
+    body: |
+      {{#if conditions.right_to_work or conditions.references or conditions.background_check}}This offer depends on:
+
+      {{#if conditions.right_to_work}}- proof of your right to work in Ireland, including an employment permit if you need one
+      {{/if}}{{#if conditions.references}}- references that are satisfactory to the company
+      {{/if}}{{#if conditions.background_check}}- a satisfactory background check, carried out with your consent
+      {{/if}}{{/if}}
+
+  - section: acceptance
+    body: |
+      Please confirm that you accept this offer by signing and returning a copy of this letter by {{acceptance.reply_by}}. We look forward to welcoming you to the team.
+
+      Yours sincerely,

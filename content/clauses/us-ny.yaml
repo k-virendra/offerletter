@@ -1,0 +1,10 @@
+# New York. Only what differs from the federal wording in us.yaml. DRAFT wording for legal review.
+jurisdiction: US-NY
+clauses:
+  - section: required_information
+    title: Pay notice
+    locked: true
+    locked_reason: Required in New York
+    editor_help: New York Labor Law §195 requires a written pay notice at hire. Give the state’s form with this letter.
+    body: |
+      With this letter you will receive the written pay notice that New York Labor Law requires at the time of hire. Please sign it to confirm you received it, and return it with this letter.

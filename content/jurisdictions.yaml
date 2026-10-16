@@ -1,0 +1,41 @@
+# Countries and states/provinces. Wording comes from approved clauses in content/clauses/.
+# Every row is seeded switched off. An admin switches a country on once all its required sections have approved
+# clauses (the database refuses otherwise). `locale` sets date and money formats for English letters.
+- { code: DE, name: Germany, currency: EUR, locale: en-DE, paper_size: a4, sort_order: 10 }
+- { code: IE, name: Ireland, currency: EUR, locale: en-IE, paper_size: a4, sort_order: 20 }
+- { code: NL, name: Netherlands, currency: EUR, locale: en-NL, paper_size: a4, sort_order: 30 }
+- { code: GB, name: United Kingdom, currency: GBP, locale: en-GB, paper_size: a4, sort_order: 40 }
+- { code: AU, name: Australia, currency: AUD, locale: en-AU, paper_size: a4, sort_order: 50 }
+- { code: NZ, name: New Zealand, currency: NZD, locale: en-NZ, paper_size: a4, sort_order: 60 }
+- code: CA
+  name: Canada
+  currency: CAD
+  locale: en-CA
+  paper_size: letter
+  sort_order: 70
+  selectable: false
+  admin_notes: Shared Canadian wording (CPP, EI, right to work). Letters are always for a province.
+  public_note: Employment standards are set by each province. Provinces without their own wording aren’t available yet.
+- { code: CA-ON, parent_code: CA, name: Ontario, currency: CAD, locale: en-CA, paper_size: letter, sort_order: 71 }
+- { code: CA-BC, parent_code: CA, name: British Columbia, currency: CAD, locale: en-CA, paper_size: letter, sort_order: 72 }
+- { code: CA-AB, parent_code: CA, name: Alberta, currency: CAD, locale: en-CA, paper_size: letter, sort_order: 73 }
+- code: CA-QC
+  parent_code: CA
+  name: Quebec
+  currency: CAD
+  locale: en-CA
+  paper_size: letter
+  sort_order: 74
+  selectable: false
+  admin_notes: Keep switched off until a reviewed French version exists (Charter of the French Language).
+  public_note: Quebec offers must be in French. They’ll be available once a reviewed French version is ready.
+- code: US
+  name: United States
+  currency: USD
+  locale: en-US
+  paper_size: letter
+  sort_order: 80
+  admin_notes: Federal wording, used for states without their own clauses. Montana is excluded (at-will works differently there).
+  public_note: States without their own wording use the federal version. Montana isn’t available, because at-will employment works differently there.
+- { code: US-CA, parent_code: US, name: California, currency: USD, locale: en-US, paper_size: letter, sort_order: 81 }
+- { code: US-NY, parent_code: US, name: New York, currency: USD, locale: en-US, paper_size: letter, sort_order: 82 }

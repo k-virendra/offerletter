@@ -1,0 +1,85 @@
+# United Kingdom. DRAFT wording for legal review. Nothing here is legal advice.
+jurisdiction: GB
+clauses:
+  - section: candidate
+    title: Offer of employment
+    body: |
+      Dear {{candidate.greeting_name}},
+
+      We are pleased to offer you the position of {{position.job_title}}{{#if position.department}} in our {{position.department}} team{{/if}} at {{company.legal_name}}. This letter sets out the main terms of our offer.
+
+  - section: position
+    body: |
+      You will report to {{position.reports_to}}. Your employment will begin on {{position.start_date}}{{#if position.contract_type == "fixed_term"}} and is for a fixed term ending on {{position.end_date}}{{/if}}.
+
+  - section: workplace
+    body: |
+      Your normal place of work will be {{workplace.location}}. Your normal working hours will be {{workplace.hours_per_week}} hours a week.
+
+  - section: compensation
+    title: Salary
+    body: |
+      Your salary will be {{pay.base_amount}} a {{#if pay.period == "month"}}month{{else}}year{{/if}} gross, paid {{pay.frequency_label}} by bank transfer.
+
+      | Component | Gross amount |
+      |---|---:|
+      | Annual salary | {{pay.annual_amount}} |
+      | Each payment ({{pay.instalments}} a year) | {{pay.period_amount}} |
+
+  - section: bonus
+    body: |
+      You will be eligible for an annual bonus of {{bonus.terms}}. The rules of the bonus scheme in force at the time apply.
+
+  - section: probation
+    title: Probationary period
+    body: |
+      {{#if probation.months == "0"}}There is no probationary period.{{else}}The first {{probation.months}} of your employment will be a probationary period. During this time either party may end the employment by giving one week’s notice.{{/if}}
+
+  - section: leave
+    title: Holiday
+    body: |
+      You will receive {{leave.days}} days of paid holiday in each holiday year, {{#if leave.public_holidays == "included"}}including{{else}}plus{{/if}} the usual public and bank holidays.
+    legal_notes: Working Time Regulations 1998, 5.6 weeks. Check rolled-up holiday pay rules for irregular-hours workers (from April 2024).
+
+  - section: notice
+    body: |
+      {{#if notice.option == "custom"}}After your probationary period, either party may end the employment by giving {{notice.custom_period}} in writing, and never less than the statutory minimum notice.{{else}}After your probationary period, you must give at least one week’s notice in writing. The company will give you at least the statutory minimum notice: one week if you have worked here for less than two years, then one week for each complete year of service, up to twelve weeks.{{/if}}
+    legal_notes: Employment Rights Act 1996, s.86.
+
+  - section: pension
+    locked: true
+    locked_reason: Included in every UK letter
+    editor_help: Employers must enrol eligible workers into a workplace pension (automatic enrolment).
+    body: |
+      If you are eligible, you will be automatically enrolled into our workplace pension scheme, as the Pensions Act 2008 requires. You can choose to opt out.{{#if pension.terms}} {{pension.terms}}{{/if}}
+
+  - section: benefits
+    body: |
+      You will also receive {{benefits.description}}.
+
+  - section: relocation
+    body: |
+      To help with your move, we will provide {{relocation.description}}.
+
+  - section: written_terms
+    locked: true
+    locked_reason: Required in the United Kingdom
+    body: |
+      You will receive a written statement of your main terms of employment on or before your first day, as the Employment Rights Act 1996 requires.
+    legal_notes: ERA 1996 s.1 (day-one statement since 6 April 2020).
+
+  - section: conditions
+    body: |
+      {{#if conditions.right_to_work or conditions.references or conditions.background_check}}This offer depends on:
+
+      {{#if conditions.right_to_work}}- proof of your right to work in the UK, which we must check before you start work
+      {{/if}}{{#if conditions.references}}- references that are satisfactory to the company
+      {{/if}}{{#if conditions.background_check}}- a satisfactory background check, carried out with your consent
+      {{/if}}{{/if}}
+    legal_notes: Right-to-work checks under the Immigration, Asylum and Nationality Act 2006 must be done before employment starts.
+
+  - section: acceptance
+    body: |
+      Please confirm that you accept this offer by signing and returning a copy of this letter by {{acceptance.reply_by}}. We look forward to welcoming you to the team.
+
+      Yours sincerely,

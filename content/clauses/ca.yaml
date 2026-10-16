@@ -1,0 +1,61 @@
+# Canada: wording shared by every province. Provinces add employment standards (probation, vacation, holidays,
+# notice) in their own files. Quebec has no wording until a reviewed French version exists.
+# DRAFT wording for legal review. Nothing here is legal advice.
+jurisdiction: CA
+clauses:
+  - section: candidate
+    title: Offer of employment
+    body: |
+      Dear {{candidate.greeting_name}},
+
+      We are pleased to offer you the position of {{position.job_title}}{{#if position.department}} in our {{position.department}} team{{/if}} at {{company.legal_name}}. This letter sets out the terms of our offer.
+
+  - section: position
+    body: |
+      You will report to {{position.reports_to}}. Your employment will begin on {{position.start_date}}{{#if position.contract_type == "fixed_term"}} and is for a fixed term ending on {{position.end_date}}{{/if}}.
+
+  - section: workplace
+    body: |
+      You will work at {{workplace.location}}. Your regular hours of work will be {{workplace.hours_per_week}} hours a week.
+
+  - section: compensation
+    title: Compensation
+    body: |
+      Your annual salary will be {{pay.annual_amount}}, paid {{pay.frequency_label}}, less the deductions required by law, including income tax, Canada Pension Plan (CPP) contributions and Employment Insurance (EI) premiums.
+
+      | Component | Gross amount |
+      |---|---:|
+      | Annual salary | {{pay.annual_amount}} |
+      | Each payment ({{pay.instalments}} a year) | {{pay.period_amount}} |
+
+  - section: bonus
+    body: |
+      You will be eligible for an annual bonus of {{bonus.terms}}, under the terms of the company’s bonus plan in effect at the time.
+
+  - section: pension
+    title: Retirement savings
+    body: |
+      You will be eligible to join the company’s retirement savings plan: {{pension.terms}}
+
+  - section: benefits
+    body: |
+      You will also receive {{benefits.description}}.
+
+  - section: relocation
+    body: |
+      To help with your move, we will provide {{relocation.description}}.
+
+  - section: conditions
+    body: |
+      {{#if conditions.right_to_work or conditions.references or conditions.background_check}}This offer depends on:
+
+      {{#if conditions.right_to_work}}- proof that you are legally entitled to work in Canada
+      {{/if}}{{#if conditions.references}}- references that are satisfactory to the company
+      {{/if}}{{#if conditions.background_check}}- a satisfactory background check, carried out with your consent
+      {{/if}}{{/if}}
+
+  - section: acceptance
+    body: |
+      To accept this offer, please sign and return a copy of this letter by {{acceptance.reply_by}}. We look forward to working with you.
+
+      Sincerely,

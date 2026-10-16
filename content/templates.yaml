@@ -1,0 +1,7 @@
+# Letter styles. Layouts are React components in src/letter-styles/<key>. default_accent is used when a company
+# has no brand colour; it must be readable as text on white (4.5:1).
+- { key: classic, name: Classic, description: "Centred letterhead, serif headings and fine rules.", default_accent: "#1F4E8C", sort_order: 10 }
+- { key: modern, name: Modern, description: "An accent band and numbered section headings.", default_accent: "#0F6E5F", sort_order: 20 }
+- { key: minimal, name: Minimal, description: "Generous white space and small-caps labels.", default_accent: "#3D4451", sort_order: 30 }
+- { key: executive, name: Executive, description: "A tinted side column with company details on page 1.", default_accent: "#6B2D4F", sort_order: 40 }
+- { key: bold, name: Bold, description: "Colour blocks in the header, still print-friendly.", default_accent: "#A3441F", sort_order: 50 }

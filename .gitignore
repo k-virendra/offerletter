@@ -1,0 +1,30 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# builds
+.next/
+out/
+build/
+*.tsbuildinfo
+coverage/
+next-env.d.ts
+
+# env and secrets: only .env.example is committed
+.env
+.env.*
+!.env.example
+supabase/.env
+
+# supabase local
+supabase/.branches/
+supabase/.temp/
+
+# playwright
+playwright-report/
+test-results/
+
+# os and editors
+.DS_Store
+*.pem
+.idea/

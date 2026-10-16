@@ -1,0 +1,73 @@
+# United States, federal wording (used for every state without its own). DRAFT wording for legal review.
+# Nothing here is legal advice.
+jurisdiction: US
+clauses:
+  - section: candidate
+    title: Offer of employment
+    body: |
+      Dear {{candidate.greeting_name}},
+
+      We are pleased to offer you the position of {{position.job_title}}{{#if position.department}} in our {{position.department}} team{{/if}} at {{company.legal_name}}. This letter sets out the terms of our offer.
+
+  - section: position
+    body: |
+      You will report to {{position.reports_to}}. Your first day of work will be {{position.start_date}}.
+
+  - section: workplace
+    title: Place of work
+    body: |
+      You will work at {{workplace.location}}{{#if workplace.hours_per_week}}, normally {{workplace.hours_per_week}} hours a week{{/if}}.
+
+  - section: compensation
+    title: Compensation
+    body: |
+      Your starting salary will be {{pay.annual_amount}} a year, paid {{pay.frequency_label}} under the company’s normal payroll practices.
+
+      | Component | Gross amount |
+      |---|---:|
+      | Annual base salary | {{pay.annual_amount}} |
+      | Each payment ({{pay.instalments}} a year) | {{pay.period_amount}} |
+
+  - section: employment_status
+    title: Overtime status
+    body: |
+      {{#if employment.flsa_status == "exempt"}}This position is classified as exempt under the Fair Labor Standards Act, which means you are not eligible for overtime pay.{{/if}}{{#if employment.flsa_status == "non_exempt"}}This position is classified as non-exempt under the Fair Labor Standards Act, which means you will be paid for overtime in line with federal and state law.{{/if}}
+
+  - section: bonus
+    body: |
+      You will be eligible for an annual bonus of {{bonus.terms}}, under the terms of the company’s bonus plan in effect at the time.
+
+  - section: leave
+    title: Paid time off
+    body: |
+      You will receive {{leave.days}} days of paid time off each year, under the company’s time-off policy.
+
+  - section: benefits
+    body: |
+      You will be eligible to take part in the company’s benefit plans{{#if benefits.description}}, including {{benefits.description}},{{/if}} under the terms of each plan.
+
+  - section: relocation
+    body: |
+      To help with your move, we will provide {{relocation.description}}.
+
+  - section: at_will
+    locked: true
+    locked_reason: Included in every US letter
+    editor_help: Employment in the United States is at will unless agreed otherwise. Montana is different, so it isn’t available yet.
+    body: |
+      Your employment with {{company.legal_name}} is at will. This means that you or the company may end the employment at any time, with or without cause or notice. Nothing in this letter is a contract for a fixed period of employment.
+
+  - section: conditions
+    body: |
+      {{#if conditions.right_to_work or conditions.references or conditions.background_check}}This offer depends on:
+
+      {{#if conditions.right_to_work}}- your completing Form I-9 and providing documents that show your identity and your authorization to work in the United States, no later than your third day of work
+      {{/if}}{{#if conditions.references}}- references that are satisfactory to the company
+      {{/if}}{{#if conditions.background_check}}- a background check carried out in line with applicable law
+      {{/if}}{{/if}}
+
+  - section: acceptance
+    body: |
+      To accept this offer, please sign and return a copy of this letter by {{acceptance.reply_by}}. We look forward to working with you.
+
+      Sincerely,

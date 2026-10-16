@@ -1,0 +1,35 @@
+# The fixed wording around the clauses. {{name}} parts are filled in by the letter: company, candidate, date,
+# place, page, pages, days, amount. A country can override any phrase; the fee line must always name the company.
+defaults:
+  confidential: Private and confidential
+  label.to: To
+  label.from: From
+  label.date: Date
+  label.place: Place
+  date_line: "{{place}}, {{date}}"
+  addressed_to: "For {{candidate}} · {{date}}"
+  page: "Page {{page}} of {{pages}}"
+  fee_line: "{{company}} never charges candidates fees."
+  signature.company_heading: "For {{company}}"
+  signature.company_note: Signed on behalf of the company
+  signature.candidate_heading: Accepted by the candidate
+  signature.candidate_note: I accept this offer on the terms set out above.
+  signature.place: Place
+  signature.date: Date
+  facts.heading: Offer at a glance
+  facts.role: Role
+  facts.start_date: Start date
+  facts.annual_salary: Annual salary
+  facts.annual_salary_value: "{{amount}} gross"
+  facts.reply_by: Reply by
+  facts.holiday: Holiday
+  facts.holiday_value: "{{days}} days"
+  company.registered_office: Registered office
+  company.registration: Registration
+  company.contact: Contact
+overrides:
+  # US and Canadian letters date the letter without a place.
+  US:
+    date_line: "{{date}}"
+  CA:
+    date_line: "{{date}}"
