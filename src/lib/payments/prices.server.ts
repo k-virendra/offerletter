@@ -2,7 +2,7 @@ import "server-only";
 import { adminClient } from "@/lib/supabase/admin";
 
 // Prices come from the database, never from the browser. "display" is what people see and "charge" is what PayU
-// is asked to collect: both ₹799 now. They can differ (say, US$9 shown and ₹799 charged); checkout then says so.
+// is asked to collect: both ₹499 now. They can differ (say, US$9 shown and ₹499 charged); checkout then says so.
 
 export type Money = { currency: string; amountMinor: number };
 
@@ -17,13 +17,13 @@ export async function activePrices(product = "offer_letter"): Promise<{ display:
   return { display: pick("display"), charge: pick("charge") };
 }
 
-/** "₹799.00", "US$9.00". */
+/** "₹499.00", "US$9.00". */
 export function formatMoney({ currency, amountMinor }: Money): string {
   // en-IN groups rupees the Indian way (₹1,00,000); other currencies read the same in en-GB.
   return new Intl.NumberFormat(currency === "INR" ? "en-IN" : "en-GB", { style: "currency", currency, minimumFractionDigits: 2 }).format(amountMinor / 100);
 }
 
-/** The price on the Pay button and the public pages, without decimals when it's whole: "₹799". */
+/** The price on the Pay button and the public pages, without decimals when it's whole: "₹499". */
 export async function displayPriceLabel(): Promise<string> {
   try {
     const { display } = await activePrices();

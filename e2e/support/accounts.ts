@@ -90,4 +90,13 @@ export async function seedLetter(
   return data.id;
 }
 
+/** The offer letter price checkout uses now, as the site shows it: { minor: 49900, full: "₹499.00", short: "₹499" }. */
+export async function activePrice() {
+  const { data, error } = await admin().from("prices").select("currency, amount_minor").eq("product", "offer_letter").eq("purpose", "display").eq("active", true).single();
+  if (error || !data) throw new Error(`activePrice failed: ${error?.message}`);
+  const format = (digits: number) =>
+    new Intl.NumberFormat(data.currency === "INR" ? "en-IN" : "en-GB", { style: "currency", currency: data.currency, minimumFractionDigits: digits, maximumFractionDigits: digits }).format(data.amount_minor / 100);
+  return { minor: data.amount_minor, full: format(2), short: format(data.amount_minor % 100 ? 2 : 0) };
+}
+
 export { admin as testAdmin };

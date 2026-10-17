@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { extractText, getDocumentProxy } from "unpdf";
 import { LENA_VALUES } from "../src/lib/letter/samples";
-import { seedCompanies, seedLetter, signInAsNewUser, testAdmin } from "./support/accounts";
+import { activePrice, seedCompanies, seedLetter, signInAsNewUser, testAdmin } from "./support/accounts";
 
 // Payments against the local PayU simulator (PAYU_MODE=simulator): it checks the request hash, posts a signed
 // response back to the app, sends the webhook a moment later and answers verify_payment, so the real checks run.
@@ -18,14 +18,15 @@ async function newLetter(page: Page, label: string) {
 
 /** Checkout through the simulator. Returns the transaction id from the status page's address. */
 async function pay(page: Page, letterId: string, outcome: keyof typeof OUTCOME) {
+  const price = await activePrice();
   if (!page.url().includes(`/letters/${letterId}/checkout`)) await page.goto(`/letters/${letterId}/checkout`);
   await expect(page.getByRole("heading", { name: "Checkout", exact: true })).toBeVisible();
   await page.getByLabel("Full name").fill("Anna Weber");
   await page.getByLabel("Postal code").fill("80331");
   await page.getByRole("checkbox", { name: /authorised to issue this letter/ }).check();
-  await page.getByRole("button", { name: "Pay ₹799.00 with PayU" }).click();
+  await page.getByRole("button", { name: `Pay ${price.full} with PayU` }).click();
   await expect(page.getByText("TEST MODE · simulator")).toBeVisible();
-  await expect(page.getByText("₹799.00")).toBeVisible();
+  await expect(page.getByText(price.full)).toBeVisible();
   await page.getByRole("button", { name: OUTCOME[outcome] }).click();
   await page.waitForURL(new RegExp(`/letters/${letterId}/checkout/OLP-`), { timeout: 60_000 });
   return decodeURIComponent(new URL(page.url()).pathname.split("/").pop()!);
@@ -45,15 +46,16 @@ const ready = (page: Page) => expect(page.getByRole("heading", { name: "Payment 
 
 test("paying issues the letter once, with its PDF and one receipt", async ({ page, isMobile }) => {
   const { email, letterId } = await newLetter(page, "pay-success");
+  const price = await activePrice();
 
   await page.goto(`/letters/${letterId}/edit`);
-  await page.getByRole("button", { name: "Pay & download · ₹799" }).click();
+  await page.getByRole("button", { name: `Pay & download · ${price.short}` }).click();
   await page.waitForURL(`**/letters/${letterId}/checkout`);
   await expect(page.getByText("Free corrections until")).toBeVisible();
   await expect(page.getByText("Charged in Indian rupees.", { exact: false })).toBeVisible();
 
   // Details are checked before anything is sent.
-  await page.getByRole("button", { name: "Pay ₹799.00 with PayU" }).click();
+  await page.getByRole("button", { name: `Pay ${price.full} with PayU` }).click();
   await expect(page.getByText("Confirm that you may issue this letter for the company.")).toBeVisible();
   await expect(page.getByLabel("Full name")).toHaveAttribute("aria-invalid", "true");
   await expect(page.getByLabel("Full name")).toBeFocused();
@@ -107,7 +109,7 @@ test("paying issues the letter once, with its PDF and one receipt", async ({ pag
   await page.getByRole("link", { name: "View the receipt" }).click();
   await expect(page.getByRole("heading", { name: "Receipt" })).toBeVisible();
   await expect(page.getByText(txnid).first()).toBeVisible();
-  await expect(page.getByRole("row", { name: /Total ₹799\.00/ })).toBeVisible();
+  await expect(page.getByRole("row", { name: `Total ${price.full}` })).toBeVisible();
 
   // A paid letter can't go through checkout again.
   await page.goto(`/letters/${letterId}/checkout`);
@@ -137,7 +139,7 @@ test.describe("payment outcomes", () => {
 
     // A forged "success" (no valid hash) changes nothing.
     const forged = await page.request.post("/api/payu/webhook", {
-      form: { key: "olpsimkey", txnid, amount: "799.00", status: "success", mihpayid: "1", hash: "0".repeat(128) },
+      form: { key: "olpsimkey", txnid, amount: "499.00", status: "success", mihpayid: "1", hash: "0".repeat(128) },
     });
     expect(forged.status()).toBe(200);
     await page.waitForTimeout(1_000);

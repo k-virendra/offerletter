@@ -91,7 +91,7 @@ export async function setStyleActive(key: string, active: boolean): Promise<Admi
 const priceSchema = z.object({
   purpose: z.enum(["display", "charge"]),
   currency: z.string().trim().toUpperCase().regex(/^[A-Z]{3}$/, "Use a three-letter currency code, like INR."),
-  amount: z.string().trim().regex(/^\d{1,7}(\.\d{1,2})?$/, "Enter the amount like 799 or 799.00."),
+  amount: z.string().trim().regex(/^\d{1,7}(\.\d{1,2})?$/, "Enter the amount like 499 or 499.00."),
   notes: z.string().trim().max(300),
   activate: z.boolean(),
 });

@@ -8,7 +8,7 @@ export type ReceiptDetails = {
   name: string;
   reference: string;
   paidOn: string;
-  /** The price as shown on the site, e.g. "₹799.00". */
+  /** The price as shown on the site, e.g. "₹499.00". */
   price: string;
   /** What PayU charged: the same, unless the site shows another currency. */
   charged: string;

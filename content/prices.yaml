@@ -1,23 +1,36 @@
 # display: shown on the website and at checkout. charge: the amount and currency sent to PayU.
 # Prices are shown in rupees, the currency PayU charges in, so what people see is what their card is charged.
+# Exactly one display and one charge price are active. To change a price, add a row and switch it on (here or in
+# the admin panel) rather than editing one: past payments keep the price they were made at.
 - product: offer_letter
   purpose: display
   currency: INR
-  amount_minor: 79900
+  amount_minor: 49900
   active: true
 - product: offer_letter
   purpose: charge
   currency: INR
-  amount_minor: 79900
+  amount_minor: 49900
   active: true
-  notes: Set the real rupee amount before going live.
 # Earlier prices, kept so the seed doesn't add them again.
+- product: offer_letter
+  purpose: display
+  currency: INR
+  amount_minor: 79900
+  active: false
+  notes: The first rupee price, replaced by ₹499 on 17 October 2026.
+- product: offer_letter
+  purpose: charge
+  currency: INR
+  amount_minor: 79900
+  active: false
+  notes: The first rupee price, replaced by ₹499 on 17 October 2026.
 - product: offer_letter
   purpose: display
   currency: USD
   amount_minor: 900
   active: false
-  notes: Shown until 2026-10-17, when the site switched to showing rupees.
+  notes: Shown until 17 October 2026, when the site switched to showing rupees.
 - product: offer_letter
   purpose: charge
   currency: USD

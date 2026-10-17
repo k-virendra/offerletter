@@ -137,7 +137,7 @@ export function AddPriceForm() {
           <Input id={`${id}-currency`} value={values.currency} maxLength={3} className="uppercase" onChange={(e) => setValues((v) => ({ ...v, currency: e.target.value }))} />
         </Field>
         <Field id={`${id}-amount`} label="Amount" required>
-          <Input id={`${id}-amount`} inputMode="decimal" placeholder="799.00" value={values.amount} onChange={(e) => setValues((v) => ({ ...v, amount: e.target.value }))} />
+          <Input id={`${id}-amount`} inputMode="decimal" placeholder="499.00" value={values.amount} onChange={(e) => setValues((v) => ({ ...v, amount: e.target.value }))} />
         </Field>
       </div>
       <Field id={`${id}-notes`} label="Notes" className="sm:col-span-2">

@@ -232,6 +232,7 @@ test.describe("admin", () => {
 
   test("a new price is added switched off, with the price history kept", async ({ page }) => {
     await signInAsAdmin(page, "admin-prices");
+    const { data: before } = await testAdmin().from("prices").select("amount_minor").eq("purpose", "charge").eq("active", true).single();
     await page.goto("/admin/prices");
     const amount = `${700 + Math.floor(Math.random() * 99)}.00`;
     await page.getByLabel("Amount").fill(amount);
@@ -241,6 +242,6 @@ test.describe("admin", () => {
     await expect(page.getByRole("row", { name: new RegExp(`₹${amount}.*e2e: not switched on`) }).getByText("Inactive")).toBeVisible();
     // Checkout still uses the active price.
     const { data: active } = await testAdmin().from("prices").select("amount_minor").eq("purpose", "charge").eq("active", true).single();
-    expect(active!.amount_minor).toBe(79900);
+    expect(active!.amount_minor).toBe(before!.amount_minor);
   });
 });

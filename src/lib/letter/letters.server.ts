@@ -79,7 +79,7 @@ export function letterState(row: { name: string; template_key: string; accent_co
   };
 }
 
-/** The price shown on the Pay button, e.g. "₹799". */
+/** The price shown on the Pay button, e.g. "₹499". */
 export { displayPriceLabel as displayPrice } from "@/lib/payments/prices.server";
 
 /** Whole days left in a correction window (0 once it has closed). */
