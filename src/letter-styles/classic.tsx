@@ -1,6 +1,7 @@
 "use client";
 
-import { Flow, INK, LogoOrWordmark, MUTED, PageBox, PageLabel, RULE, Runs, sectionItems, standardFlow, type BlockLook, type LetterStyle } from "./kit";
+import { Flow, INK, LogoOrWordmark, MUTED, PageBox, PageLabel, RULE, Runs, sectionItems, SignatureMark, standardFlow, type BlockLook, type LetterStyle } from "./kit";
+import type { ReactNode } from "react";
 import type { LetterDocument } from "@/lib/letter/types";
 
 // Classic: centred letterhead, serif headings and fine rules.
@@ -64,7 +65,11 @@ function Page({ doc, index, count, children }: { doc: LetterDocument; index: num
 function flow(doc: LetterDocument) {
   const blockLook = look(doc);
   const label = { fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase" as const, color: MUTED };
-  const signatureLine = <span aria-hidden className="block h-11" style={{ borderBottom: `1px solid ${INK}` }} />;
+  const signatureLine = (mark?: ReactNode) => (
+    <span className="relative block h-11" style={{ borderBottom: `1px solid ${INK}` }}>
+      {mark}
+    </span>
+  );
   const blank = "______________";
 
   return standardFlow(doc, {
@@ -117,7 +122,7 @@ function flow(doc: LetterDocument) {
           <span className="mt-0.5 text-[13px]" style={{ color: MUTED }}>
             {doc.signatures.company.note}
           </span>
-          {signatureLine}
+          {signatureLine(<SignatureMark signature={doc.signatures.company.signature} />)}
           <span className="mt-1.5 font-semibold">
             <Runs runs={doc.signatures.company.name} />
           </span>
@@ -133,7 +138,7 @@ function flow(doc: LetterDocument) {
           <span className="mt-0.5 text-[13px]" style={{ color: MUTED }}>
             {doc.signatures.candidate.note}
           </span>
-          {signatureLine}
+          {signatureLine()}
           <span className="mt-1.5 font-semibold">
             <Runs runs={doc.signatures.candidate.name} />
           </span>

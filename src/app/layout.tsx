@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { newsreader, plex, sourceSerif } from "./fonts";
+import { newsreader, plex, signatureFlowing, signatureHand, signatureQuick, sourceSerif } from "./fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -12,7 +12,10 @@ export const viewport: Viewport = { themeColor: "#0F6E5F" };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${plex.variable} ${newsreader.variable} ${sourceSerif.variable}`}>
+    <html
+      lang="en"
+      className={`${plex.variable} ${newsreader.variable} ${sourceSerif.variable} ${signatureFlowing.variable} ${signatureQuick.variable} ${signatureHand.variable}`}
+    >
       <body>{children}</body>
     </html>
   );

@@ -3,7 +3,19 @@ import { formatDate, formatMoney, formatNumber, parseAmount, payFigures } from "
 import { parseBlocks, type Inline, type MdBlock } from "@/lib/template/markdown";
 import { evaluateTemplate, parseTemplate, type TemplateNode, type ValueLookup } from "@/lib/template/parse";
 import { isEmptyValue, letterSections } from "./fields";
-import type { Block, DocumentSection, FieldDefinition, LetterCompany, LetterContext, LetterDocument, LetterState, Run } from "./types";
+import {
+  SIGNATURE_STYLES,
+  type Block,
+  type DocumentSection,
+  type FieldDefinition,
+  type FieldValue,
+  type LetterCompany,
+  type LetterContext,
+  type LetterDocument,
+  type LetterState,
+  type Run,
+  type TypedSignature,
+} from "./types";
 
 // Builds the style-independent document from content, company and the user's values. Pure and synchronous: the
 // live preview calls it on every change, and the PDF renderer calls it with the same inputs.
@@ -261,6 +273,7 @@ export function buildLetterDocument(context: LetterContext, company: LetterCompa
         name: placeholderRuns("signatory.name"),
         title: placeholderRuns("signatory.title"),
         place,
+        signature: typedSignature(values["signatory.name"], values["signatory.signature"]),
       },
       candidate: { heading: phrase("signature.candidate_heading"), note: phrase("signature.candidate_note"), name: candidateName },
       placeLabel: phrase("signature.place"),
@@ -273,4 +286,11 @@ export function buildLetterDocument(context: LetterContext, company: LetterCompa
     phrases,
     unreviewed,
   };
+}
+
+/** The signatory's name in a handwriting style, when one is chosen (letters without the choice sign with a pen). */
+export function typedSignature(name: FieldValue | undefined, style: FieldValue | undefined): TypedSignature | null {
+  const text = typeof name === "string" ? name.trim() : "";
+  const chosen = SIGNATURE_STYLES.find((s) => s === style);
+  return text && chosen ? { text, style: chosen } : null;
 }

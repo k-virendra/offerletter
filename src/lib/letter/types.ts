@@ -119,6 +119,9 @@ export type DocumentSection = {
   blocks: Block[];
 };
 
+export const SIGNATURE_STYLES = ["flowing", "quick", "hand"] as const;
+export type TypedSignature = { text: string; style: (typeof SIGNATURE_STYLES)[number] };
+
 export type LetterDocument = {
   paperSize: PaperSize;
   templateKey: string;
@@ -150,7 +153,8 @@ export type LetterDocument = {
   sections: DocumentSection[];
   closing: Block[];
   signatures: {
-    company: { heading: string; note: string; name: Run[]; title: Run[]; place: Run[] };
+    /** `signature`: the signatory's name drawn in handwriting above the line, or null to sign with a pen. */
+    company: { heading: string; note: string; name: Run[]; title: Run[]; place: Run[]; signature: TypedSignature | null };
     candidate: { heading: string; note: string; name: Run[] };
     placeLabel: string;
     dateLabel: string;

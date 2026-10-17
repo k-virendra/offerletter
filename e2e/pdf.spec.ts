@@ -22,6 +22,13 @@ function expectSize(pdf: PDFDocument, [width, height]: number[]) {
   expect(Math.abs(size.height - height!)).toBeLessThan(0.5);
 }
 
+/** The fonts a PDF embeds, e.g. "AAAAAA+MrsSaintDelafield-Regular". */
+function fontNames(pdf: PDFDocument): string[] {
+  return pdf.context
+    .enumerateIndirectObjects()
+    .flatMap(([, object]) => (object instanceof PDFDict && object.get(PDFName.of("Type")) === PDFName.of("Font") ? [object.get(PDFName.of("BaseFont"))?.toString() ?? ""] : []));
+}
+
 async function pagesText(bytes: Uint8Array): Promise<string[]> {
   const { text } = await extractText(await getDocumentProxy(new Uint8Array(bytes)), { mergePages: false });
   return text.map((page) => page.replace(/\s+/g, " "));
@@ -133,6 +140,8 @@ test.describe("issued versions", () => {
     expect(compact(text)).not.toContain("preview");
     expect(text).toContain("New York Labor Law");
     expect(text).toContain("1 of"); // Modern's footer: "Page 1 of N"
+    // The signatory's name in handwriting, with the handwriting font itself in the file (not a fallback).
+    expect(fontNames(pdf).some((name) => name.includes("MrsSaintDelafield"))).toBe(true);
 
     const admin = testAdmin();
     const { data: letter } = await admin.from("letters").select("current_version, pinned_clauses").eq("id", letterId).single();

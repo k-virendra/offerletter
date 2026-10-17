@@ -2,22 +2,7 @@
 
 import type { CSSProperties, ReactNode } from "react";
 import type { LetterDocument } from "@/lib/letter/types";
-import {
-  Flow,
-  hasPlace,
-  INK,
-  LogoOrWordmark,
-  MUTED,
-  PageBox,
-  PageLabel,
-  RULE,
-  Runs,
-  sectionItems,
-  StackedWords,
-  standardFlow,
-  type BlockLook,
-  type LetterStyle,
-} from "./kit";
+import { Flow, hasPlace, INK, LogoOrWordmark, MUTED, PageBox, PageLabel, RULE, Runs, sectionItems, SignatureMark, StackedWords, standardFlow, type BlockLook, type LetterStyle } from "./kit";
 
 // Modern: an accent band and numbered section headings.
 
@@ -90,10 +75,12 @@ function flow(doc: LetterDocument) {
       <div>{content}</div>
     </div>
   );
-  const signature = (heading: string, name: ReactNode, second: ReactNode, place: ReactNode) => (
+  const signature = (heading: string, name: ReactNode, second: ReactNode, place: ReactNode, mark?: ReactNode) => (
     <div className="flex flex-col pt-2.5" style={{ borderTop: `2px solid ${doc.accent}` }}>
       <span style={label}>{heading}</span>
-      <span aria-hidden className="block h-12" style={{ borderBottom: `1px solid ${INK}` }} />
+      <span className="relative block h-12" style={{ borderBottom: `1px solid ${INK}` }}>
+        {mark}
+      </span>
       <span className="mt-1.5 font-semibold">{name}</span>
       <span>{second}</span>
       <span className="mt-1.5 text-[12.5px]" style={{ color: MUTED }}>
@@ -172,6 +159,7 @@ function flow(doc: LetterDocument) {
           <>
             {doc.signatures.placeLabel}: <Runs runs={doc.signatures.company.place} /> · {doc.signatures.dateLabel}: {blank}
           </>,
+          <SignatureMark signature={doc.signatures.company.signature} />,
         )}
         {signature(
           doc.signatures.candidate.heading,

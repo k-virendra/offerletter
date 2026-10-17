@@ -2,20 +2,7 @@
 
 import type { CSSProperties, ReactNode } from "react";
 import type { LetterDocument } from "@/lib/letter/types";
-import {
-  Flow,
-  INK,
-  LogoOrWordmark,
-  MUTED,
-  PageBox,
-  RULE,
-  Runs,
-  sectionItems,
-  StackedWords,
-  standardFlow,
-  type BlockLook,
-  type LetterStyle,
-} from "./kit";
+import { Flow, INK, LogoOrWordmark, MUTED, PageBox, RULE, Runs, sectionItems, SignatureMark, StackedWords, standardFlow, type BlockLook, type LetterStyle } from "./kit";
 
 // Bold: colour blocks in the header and key facts in boxes, still print-friendly (the page stays white).
 
@@ -93,10 +80,12 @@ function flow(doc: LetterDocument) {
     .filter((fact) => fact !== undefined)
     .slice(0, 3);
   const box: CSSProperties = { border: `1px solid ${RULE}`, borderTop: `4px solid ${doc.accent}` };
-  const signature = (heading: string, name: ReactNode, second: ReactNode, place: ReactNode) => (
+  const signature = (heading: string, name: ReactNode, second: ReactNode, place: ReactNode, mark?: ReactNode) => (
     <div className="flex flex-col" style={{ ...box, padding: "12px 16px 14px" }}>
       <span style={caps}>{heading}</span>
-      <span aria-hidden className="block h-[42px]" style={{ borderBottom: `1px solid ${INK}` }} />
+      <span className="relative block h-[42px]" style={{ borderBottom: `1px solid ${INK}` }}>
+        {mark}
+      </span>
       <span className="mt-1.5 font-bold">{name}</span>
       <span>{second}</span>
       <span className="mt-1 text-[12px]" style={{ color: MUTED }}>
@@ -176,6 +165,7 @@ function flow(doc: LetterDocument) {
           <>
             {doc.signatures.placeLabel}: <Runs runs={doc.signatures.company.place} /> · {doc.signatures.dateLabel}: {blank}
           </>,
+          <SignatureMark signature={doc.signatures.company.signature} />,
         )}
         {signature(
           doc.signatures.candidate.heading,

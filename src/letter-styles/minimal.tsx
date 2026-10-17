@@ -2,7 +2,7 @@
 
 import type { CSSProperties, ReactNode } from "react";
 import type { LetterDocument } from "@/lib/letter/types";
-import { BlockView, Flow, INK, LogoOrWordmark, MUTED, PageBox, Runs, standardFlow, type BlockLook, type FlowItem, type LetterStyle } from "./kit";
+import { BlockView, Flow, INK, LogoOrWordmark, MUTED, PageBox, Runs, SignatureMark, standardFlow, type BlockLook, type FlowItem, type LetterStyle } from "./kit";
 
 // Minimal: generous white space, small-caps labels, mostly monochrome. Sections are rows: a label, then the text.
 
@@ -65,10 +65,12 @@ function Page({ doc, index, count, children }: { doc: LetterDocument; index: num
 
 function flow(doc: LetterDocument) {
   const blank = "______________";
-  const signature = (heading: string, name: ReactNode, place: ReactNode) => (
+  const signature = (heading: string, name: ReactNode, place: ReactNode, mark?: ReactNode) => (
     <div className="flex flex-col">
       <span style={label}>{heading}</span>
-      <span aria-hidden className="block h-10" style={{ borderBottom: `1px solid ${INK}` }} />
+      <span className="relative block h-10" style={{ borderBottom: `1px solid ${INK}` }}>
+        {mark}
+      </span>
       <span className="mt-1.5 font-medium">{name}</span>
       <span className="text-[12.5px]" style={{ color: MUTED }}>
         {place}
@@ -139,6 +141,7 @@ function flow(doc: LetterDocument) {
           <>
             <Runs runs={doc.signatures.company.place} /> · {doc.signatures.dateLabel} {blank}
           </>,
+          <SignatureMark signature={doc.signatures.company.signature} />,
         )}
         {signature(
           doc.signatures.candidate.heading,

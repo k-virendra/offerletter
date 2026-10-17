@@ -100,6 +100,21 @@ describe("buildLetterDocument with the German draft clauses", () => {
     expect(build({ ...state(), accentColor: "#F2A541" }).accent).toBe("#8E6227");
   });
 
+  it("signs with the signatory's name in the chosen handwriting, or leaves the line for a pen", () => {
+    expect(build().signatures.company.signature).toEqual({ text: "Dr. Anna Weber", style: "flowing" });
+    expect(build(state({ ...LENA_VALUES, "signatory.signature": "hand", "signatory.name": "  Jonas Becker " })).signatures.company.signature).toEqual({
+      text: "Jonas Becker",
+      style: "hand",
+    });
+    expect(build(state({ ...LENA_VALUES, "signatory.signature": "none" })).signatures.company.signature).toBeNull();
+    expect(build(state({ ...LENA_VALUES, "signatory.signature": "comic-sans" })).signatures.company.signature).toBeNull();
+    expect(build(state({ ...LENA_VALUES, "signatory.name": "" })).signatures.company.signature).toBeNull();
+    // Letters made (or paid for) before the choice existed keep their blank line.
+    const before = { ...LENA_VALUES };
+    delete before["signatory.signature"];
+    expect(build(state(before)).signatures.company.signature).toBeNull();
+  });
+
   it("keeps whatever people type as plain text", () => {
     const doc = build(state({ ...LENA_VALUES, "candidate.full_name": '<script>alert(1)</script> **Lena**' }));
     expect(doc.recipient.name).toEqual([{ kind: "value", text: '<script>alert(1)</script> **Lena**', field: "candidate.full_name" }]);

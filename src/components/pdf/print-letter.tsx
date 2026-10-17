@@ -42,7 +42,13 @@ export function PrintLetter({
 
   const onReady = useCallback(() => {
     const images = [...document.images].map((image) => (image.complete ? Promise.resolve() : image.decode().catch(() => undefined)));
-    void Promise.all(images).then(() => requestAnimationFrame(() => markReady("true")));
+    // Handwriting fonts aren't preloaded and may only start loading once the signature is laid out: load them
+    // explicitly, so the PDF never prints a fallback font.
+    const signatures = [...document.querySelectorAll<HTMLElement>("[data-signature]")].map((element) => {
+      const { fontSize, fontFamily } = getComputedStyle(element);
+      return document.fonts.load(`${fontSize} ${fontFamily}`, element.textContent ?? "").catch(() => undefined);
+    });
+    void Promise.all([...images, ...signatures]).then(() => requestAnimationFrame(() => markReady("true")));
   }, []);
 
   if (!doc) return <p>This letter couldn’t be laid out.</p>;

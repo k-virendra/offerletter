@@ -221,4 +221,12 @@
 - { key: acceptance.reply_by, section_key: acceptance, label: Reply by, type: date, required: true, sort_order: 10, validation: { future: true } }
 - { key: acceptance.place, section_key: acceptance, label: Place of signing, type: text, required: true, sort_order: 20, placeholder: "e.g. Munich", validation: { max_length: 80 } }
 - { key: signatory.name, section_key: acceptance, label: Signed by, type: text, required: true, sort_order: 30, help_text: Filled in from the company. Change it for this letter only., validation: { max_length: 120 } }
+- key: signatory.signature
+  section_key: acceptance
+  label: Signature
+  type: select
+  sort_order: 35
+  default_value: flowing
+  help_text: The “Signed by” name in handwriting, above the signature line. Choose “Sign by hand” to sign the printed letter with a pen instead.
+  options: [{ value: flowing, label: Handwritten – elegant }, { value: quick, label: Handwritten – quick }, { value: hand, label: Handwritten – casual }, { value: none, label: Sign by hand }]
 - { key: signatory.title, section_key: acceptance, label: Signatory’s job title, type: text, required: true, sort_order: 40, validation: { max_length: 120 } }

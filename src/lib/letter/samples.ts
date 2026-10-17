@@ -41,6 +41,7 @@ export const LENA_VALUES: LetterState["values"] = {
   "acceptance.reply_by": "2026-10-30",
   "acceptance.place": "Munich",
   "signatory.name": "Dr. Anna Weber",
+  "signatory.signature": "flowing",
   "signatory.title": "Head of People",
 };
 

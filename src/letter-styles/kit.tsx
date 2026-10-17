@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, type CSSProperties, type ReactNode } from "react";
-import type { Block, LetterDocument, Run } from "@/lib/letter/types";
+import type { Block, LetterDocument, Run, TypedSignature } from "@/lib/letter/types";
 
 // Shared building blocks for the letter styles. The same components render the live preview and, later, the PDF.
 // No wording lives here: every word comes from the LetterDocument (clauses and phrases from the database).
@@ -61,6 +61,36 @@ export function Runs({ runs }: { runs: Run[] }) {
         );
     }
   });
+}
+
+// Typed signatures: the signatory's name in handwriting, in pen-blue ink. Sizes even out the fonts' different
+// proportions; `lift` sets the baseline on the line, as a pen signature would sit.
+const SIGNATURE_LOOK = {
+  flowing: { family: "var(--font-signature-flowing), cursive", size: 34, lift: -7 },
+  quick: { family: "var(--font-signature-quick), cursive", size: 36, lift: -6 },
+  hand: { family: "var(--font-signature-hand), cursive", size: 24, lift: 2 },
+} as const;
+const SIGNATURE_INK = "#1B3B8C";
+
+/**
+ * Drawn inside a signature line's box (which must be `relative`), so the letter's layout and page breaks are the
+ * same with or without it. Long names get smaller to stay on the line. Hidden from screen readers and the PDF's
+ * structure: the printed name under the line says the same.
+ */
+export function SignatureMark({ signature }: { signature: TypedSignature | null }) {
+  if (!signature) return null;
+  const look = SIGNATURE_LOOK[signature.style];
+  const size = Math.round(look.size * Math.min(1, 20 / Math.max(signature.text.length, 1)));
+  return (
+    <span
+      aria-hidden
+      data-signature={signature.style}
+      className="pointer-events-none absolute left-1 whitespace-nowrap select-none"
+      style={{ bottom: look.lift, fontFamily: look.family, fontSize: size, lineHeight: 1.2, color: SIGNATURE_INK, fontWeight: 400 }}
+    >
+      {signature.text}
+    </span>
+  );
 }
 
 export type BlockLook = {

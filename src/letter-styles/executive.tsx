@@ -2,22 +2,7 @@
 
 import type { CSSProperties, ReactNode } from "react";
 import type { LetterDocument } from "@/lib/letter/types";
-import {
-  Flow,
-  hasPlace,
-  INK,
-  LogoOrWordmark,
-  MUTED,
-  PageBox,
-  PageLabel,
-  RULE,
-  Runs,
-  sectionItems,
-  StackedWords,
-  standardFlow,
-  type BlockLook,
-  type LetterStyle,
-} from "./kit";
+import { Flow, hasPlace, INK, LogoOrWordmark, MUTED, PageBox, PageLabel, RULE, Runs, sectionItems, SignatureMark, StackedWords, standardFlow, type BlockLook, type LetterStyle } from "./kit";
 
 // Executive: a tinted side column with the company's details and the offer at a glance on page 1.
 
@@ -126,12 +111,14 @@ function Page({ doc, index, count, children }: { doc: LetterDocument; index: num
 function flow(doc: LetterDocument) {
   const blockLook = look(doc);
   const blank = "______________";
-  const signature = (heading: string, name: ReactNode, second: ReactNode, place: ReactNode, divider?: boolean) => (
+  const signature = (heading: string, name: ReactNode, second: ReactNode, place: ReactNode, divider?: boolean, mark?: ReactNode) => (
     <div className="flex flex-col" style={{ padding: "18px 20px", borderLeft: divider ? "1px solid #FFFFFF" : undefined }}>
       <span className="text-[12px]" style={{ ...smallCaps, color: doc.accent }}>
         {heading}
       </span>
-      <span aria-hidden className="block h-[46px]" style={{ borderBottom: `1px solid ${INK}` }} />
+      <span className="relative block h-[46px]" style={{ borderBottom: `1px solid ${INK}` }}>
+        {mark}
+      </span>
       <span className="font-display mt-1.5 text-[16px] font-semibold">{name}</span>
       <span>{second}</span>
       <span className="mt-1.5 text-[12px]" style={{ color: MUTED }}>
@@ -206,6 +193,8 @@ function flow(doc: LetterDocument) {
             <>
               {doc.signatures.placeLabel}: <Runs runs={doc.signatures.company.place} /> · {doc.signatures.dateLabel}: {blank}
             </>,
+            false,
+            <SignatureMark signature={doc.signatures.company.signature} />,
           )}
           {signature(
             doc.signatures.candidate.heading,
