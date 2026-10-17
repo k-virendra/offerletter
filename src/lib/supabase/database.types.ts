@@ -602,14 +602,19 @@ export type Database = {
           amount_minor: number
           billing: Json
           company_id: string | null
+          company_snapshot: Json | null
+          content_hash: string | null
           created_at: string
           currency: string
           display_amount_minor: number | null
           display_currency: string | null
+          failure_reason: string | null
           id: string
           letter_id: string | null
+          letter_snapshot: Json | null
           payu_payment_id: string | null
           raw_responses: Json
+          receipt_sent_at: string | null
           refund_note: string | null
           refunded_at: string | null
           status: Database["public"]["Enums"]["payment_status"]
@@ -622,14 +627,19 @@ export type Database = {
           amount_minor: number
           billing?: Json
           company_id?: string | null
+          company_snapshot?: Json | null
+          content_hash?: string | null
           created_at?: string
           currency: string
           display_amount_minor?: number | null
           display_currency?: string | null
+          failure_reason?: string | null
           id?: string
           letter_id?: string | null
+          letter_snapshot?: Json | null
           payu_payment_id?: string | null
           raw_responses?: Json
+          receipt_sent_at?: string | null
           refund_note?: string | null
           refunded_at?: string | null
           status?: Database["public"]["Enums"]["payment_status"]
@@ -642,14 +652,19 @@ export type Database = {
           amount_minor?: number
           billing?: Json
           company_id?: string | null
+          company_snapshot?: Json | null
+          content_hash?: string | null
           created_at?: string
           currency?: string
           display_amount_minor?: number | null
           display_currency?: string | null
+          failure_reason?: string | null
           id?: string
           letter_id?: string | null
+          letter_snapshot?: Json | null
           payu_payment_id?: string | null
           raw_responses?: Json
+          receipt_sent_at?: string | null
           refund_note?: string | null
           refunded_at?: string | null
           status?: Database["public"]["Enums"]["payment_status"]
@@ -861,6 +876,15 @@ export type Database = {
       }
     }
     Functions: {
+      activate_price: { Args: { p_id: string }; Returns: undefined }
+      admin_metrics: {
+        Args: { p_from: string; p_prev_from: string; p_to: string }
+        Returns: Json
+      }
+      append_payment_response: {
+        Args: { p_entry: Json; p_txnid: string }
+        Returns: undefined
+      }
       is_admin: { Args: never; Returns: boolean }
       is_service: { Args: never; Returns: boolean }
       jurisdiction_chain: { Args: { p_code: string }; Returns: string[] }

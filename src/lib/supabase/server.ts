@@ -3,6 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { publicEnv } from "@/lib/env";
 import type { Database } from "./database.types";
+import { resilientFetch } from "./fetch";
 
 /**
  * A Supabase client acting as the signed-in user (Row Level Security applies).
@@ -11,6 +12,7 @@ import type { Database } from "./database.types";
 export async function createClient() {
   const cookieStore = await cookies();
   return createServerClient<Database>(publicEnv.NEXT_PUBLIC_SUPABASE_URL, publicEnv.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
+    global: { fetch: resilientFetch },
     cookies: {
       getAll() {
         return cookieStore.getAll();

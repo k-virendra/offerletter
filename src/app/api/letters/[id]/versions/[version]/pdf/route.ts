@@ -28,8 +28,9 @@ export async function GET(_request: Request, { params }: RouteContext<"/api/lett
   const supabase = await createClient();
   const { data: row } = await supabase
     .from("letter_versions")
-    .select("id, version, pdf_path, letters(name)")
+    .select("id, version, pdf_path, letters!inner(name, author_id)")
     .eq("letter_id", id)
+    .eq("letters.author_id", user.id)
     .eq("version", number.data)
     .maybeSingle();
   if (!row) return messagePage(404, "Letter not found", "We couldn’t find this version of the letter in your account.");

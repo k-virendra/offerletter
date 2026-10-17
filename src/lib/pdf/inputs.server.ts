@@ -37,6 +37,21 @@ export function issuedCompany(row: CompanyRow): IssuedCompany {
   };
 }
 
+/**
+ * The wording and date a letter is edited with. A draft uses its country's current wording and today's date. A paid
+ * letter being corrected keeps the wording and date its latest version was issued with: a correction fixes the
+ * answers, never the clauses.
+ */
+export async function letterWording(letter: { id: string; status: string; current_version: number; jurisdiction_code: string }): Promise<{ context: LetterContext; date: string } | null> {
+  if (letter.status === "paid" && letter.current_version > 0) {
+    const { data } = await adminClient().from("letter_versions").select("snapshot").eq("letter_id", letter.id).eq("version", letter.current_version).maybeSingle();
+    const snapshot = data?.snapshot as unknown as IssuedSnapshot | undefined;
+    return snapshot?.schema === 1 ? { context: snapshot.context, date: snapshot.date } : null;
+  }
+  const context = await loadLetterContext(letter.jurisdiction_code);
+  return context ? { context, date: todayIso() } : null;
+}
+
 async function loadDraft(letterId: string) {
   const { data: letter } = await adminClient()
     .from("letters")
@@ -44,12 +59,12 @@ async function loadDraft(letterId: string) {
     .eq("id", letterId)
     .maybeSingle();
   if (!letter?.companies) return null;
-  const context = await loadLetterContext(letter.jurisdiction_code);
-  if (!context) return null;
-  return { letter, context, company: issuedCompany(letter.companies) };
+  const wording = await letterWording(letter);
+  if (!wording) return null;
+  return { letter, ...wording, company: issuedCompany(letter.companies) };
 }
 
-/** A draft as it is now, for a watermarked preview. */
+/** A draft (or a correction in progress) as it is now, for a watermarked preview. */
 export async function draftInputs(letterId: string): Promise<PrintInputs | null> {
   const draft = await loadDraft(letterId);
   if (!draft) return null;
@@ -57,7 +72,7 @@ export async function draftInputs(letterId: string): Promise<PrintInputs | null>
     context: draft.context,
     state: letterState(draft.letter),
     company: { ...draft.company, logo: await signedLogo(draft.company.logo) },
-    date: todayIso(),
+    date: draft.date,
     name: draft.letter.name,
   };
 }
@@ -82,10 +97,10 @@ export async function versionInputs(versionId: string): Promise<PrintInputs | nu
   };
 }
 
-/** Freezes a draft for issuing. */
+/** Freezes a draft for checkout, or a correction for issuing. */
 export async function snapshotDraft(letterId: string) {
   const draft = await loadDraft(letterId);
   if (!draft) return null;
-  const snapshot: IssuedSnapshot = { schema: 1, date: todayIso(), context: draft.context, state: letterState(draft.letter) };
+  const snapshot: IssuedSnapshot = { schema: 1, date: draft.date, context: draft.context, state: letterState(draft.letter) };
   return { snapshot, company: draft.company, letter: draft.letter };
 }

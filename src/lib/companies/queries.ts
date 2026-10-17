@@ -1,4 +1,5 @@
 import "server-only";
+import { getUser } from "@/lib/auth";
 import { adminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
@@ -10,14 +11,18 @@ const COMPANY_COLUMNS =
 
 export type CompanySummary = Awaited<ReturnType<typeof listCompanies>>["companies"][number];
 
-/** The signed-in user's companies with letter counts and short-lived logo URLs. RLS limits rows to the owner. */
+/**
+ * The signed-in user's companies with letter counts and short-lived logo URLs. Filtered by owner as well as by RLS:
+ * an admin's session can read every company, but their own pages show only their own.
+ */
 export async function listCompanies() {
+  const user = await getUser();
+  if (!user) return { error: true as const, companies: [] };
   const supabase = await createClient();
-  const [companies, counts] = await Promise.all([
-    supabase.from("companies").select(COMPANY_COLUMNS).order("created_at", { ascending: true }),
-    supabase.from("company_letter_counts").select("company_id, paid, drafts"),
-  ]);
-  if (companies.error || counts.error) return { error: true as const, companies: [] };
+  const companies = await supabase.from("companies").select(COMPANY_COLUMNS).eq("owner_id", user.id).order("created_at", { ascending: true });
+  if (companies.error) return { error: true as const, companies: [] };
+  const counts = await supabase.from("company_letter_counts").select("company_id, paid, drafts").in("company_id", companies.data.map((company) => company.id));
+  if (counts.error) return { error: true as const, companies: [] };
 
   const countsById = new Map(counts.data.map((row) => [row.company_id, row]));
   const logoUrls = await signedLogoUrls(companies.data.flatMap((company) => (company.logo_path ? [company.logo_path] : [])));

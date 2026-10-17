@@ -2,15 +2,18 @@ import { Plus } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { requireUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Letters" };
 
 export default async function DashboardPage() {
+  const user = await requireUser("/dashboard");
   const supabase = await createClient();
   const { data: letters, error } = await supabase
     .from("letters")
     .select("id, name, status, updated_at, jurisdiction_code, template_key, companies(legal_name)")
+    .eq("author_id", user.id)
     .order("updated_at", { ascending: false })
     .limit(50);
 

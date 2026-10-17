@@ -29,3 +29,8 @@ export function canonicalJson(value: unknown): string {
 export function contentHash(snapshot: IssuedSnapshot, company: IssuedCompany): string {
   return createHash("sha256").update(canonicalJson({ snapshot, company })).digest("hex");
 }
+
+/** The first 12 characters of a version's content hash (as in its PDF's file name), in groups of four. */
+export function fingerprint(hash: string): string {
+  return (hash.slice(0, 12).match(/.{1,4}/g) ?? []).join(" ");
+}

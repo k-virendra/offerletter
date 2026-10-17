@@ -21,6 +21,7 @@ export function SectionCard({
   badge,
   currency,
   flash,
+  locked,
   onChange,
   onBlur,
   onRemove,
@@ -35,6 +36,8 @@ export function SectionCard({
   badge: string | null;
   currency: string;
   flash: string | null;
+  /** Fields that can't change (a correction keeps the candidate and the job). */
+  locked?: ReadonlySet<string>;
   onChange: (key: string, value: FieldValue) => void;
   onBlur: () => void;
   onRemove: () => void;
@@ -86,7 +89,10 @@ export function SectionCard({
             note={notes[field.key]}
             currency={currency}
             flash={flash === field.key}
-            onChange={(value) => onChange(field.key, value)}
+            locked={locked?.has(field.key) ?? false}
+            onChange={(value) => {
+              if (!locked?.has(field.key)) onChange(field.key, value);
+            }}
             onBlur={onBlur}
           />
         ))}
@@ -103,6 +109,7 @@ function FieldControl({
   note,
   currency,
   flash,
+  locked,
   onChange,
   onBlur,
 }: {
@@ -111,6 +118,7 @@ function FieldControl({
   note: FieldNote | undefined;
   currency: string;
   flash: boolean;
+  locked: boolean;
   onChange: (value: FieldValue) => void;
   onBlur: () => void;
 }) {
@@ -119,13 +127,16 @@ function FieldControl({
   const text = typeof value === "string" ? value : "";
   const wide = WIDE_TYPES.has(field.type) || (field.validation.max_length ?? 0) >= 160;
   const invalid = note?.kind === "error";
+  // Locked fields stay readable and focusable (read-only rather than disabled), with the reason as their note.
+  const shown = locked ? { kind: "info" as const, text: "Can’t change in a correction: it’s the same offer to the same person." } : note;
   const common = {
     id,
-    "aria-describedby": note ? noteId : undefined,
-    "aria-invalid": invalid || undefined,
+    "aria-describedby": shown ? noteId : undefined,
+    "aria-invalid": (!locked && invalid) || undefined,
     "aria-required": field.required || undefined,
+    readOnly: locked || undefined,
     onBlur,
-    className: cn(controlClass, note?.kind === "required" && "border-marigold-700"),
+    className: cn(controlClass, !locked && note?.kind === "required" && "border-marigold-700", locked && "bg-[#F3F4F1] text-ink-2"),
   };
 
   let control: React.ReactNode;
@@ -196,17 +207,24 @@ function FieldControl({
           <label htmlFor={id} className="text-sm font-medium text-ink">
             {field.label}
           </label>
-          <span className="text-xs text-muted">{field.required ? "Required" : "Optional"}</span>
+          {locked ? (
+            <span className="inline-flex items-center gap-1 text-xs text-muted">
+              <Lock aria-hidden className="size-3" />
+              Locked
+            </span>
+          ) : (
+            <span className="text-xs text-muted">{field.required ? "Required" : "Optional"}</span>
+          )}
         </div>
       ) : null}
       {control}
-      {note ? (
+      {shown ? (
         <p
           id={noteId}
-          className={cn("flex items-start gap-1.5 text-[13px]", note.kind === "error" ? "text-danger" : note.kind === "required" ? "text-marigold-800" : "text-muted")}
+          className={cn("flex items-start gap-1.5 text-[13px]", shown.kind === "error" ? "text-danger" : shown.kind === "required" ? "text-marigold-800" : "text-muted")}
         >
-          {note.kind !== "info" ? <CircleAlert aria-hidden className="mt-0.5 size-3.5 shrink-0" /> : null}
-          {note.text}
+          {shown.kind !== "info" ? <CircleAlert aria-hidden className="mt-0.5 size-3.5 shrink-0" /> : null}
+          {shown.text}
         </p>
       ) : null}
     </div>

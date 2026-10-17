@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Check, CircleAlert, CloudOff, FileText, Loader2, RotateCcw, TriangleAlert } from "lucide-react";
+import { ArrowLeft, Check, CircleAlert, CloudOff, FilePenLine, FileText, Loader2, RotateCcw, TriangleAlert } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
@@ -10,18 +10,21 @@ import { fieldDomId, SectionCard, sectionHeadingId, type FieldNote } from "@/com
 import { PreviewPane } from "@/components/editor/preview-pane";
 import { recoverBackup, useAutosave, type SaveStatus } from "@/components/editor/use-autosave";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { toast } from "@/components/ui/toast";
 import { normalizeHex, readableAccent } from "@/lib/color";
 import { companyInitials } from "@/lib/companies/format";
 import { buildLetterDocument } from "@/lib/letter/build";
+import { LOCKED_IN_CORRECTIONS } from "@/lib/letter/corrections";
 import { crossFieldErrors, fieldError, isEmptyValue, letterSections, missingFields, sectionLock } from "@/lib/letter/fields";
 import { automaticName, DEFAULT_LETTER_NAME } from "@/lib/letter/naming";
 import type { JurisdictionOption } from "@/lib/letter/context.server";
 import type { FieldDefinition, FieldValue, LetterCompany, LetterContext, LetterDocument, LetterState, Run } from "@/lib/letter/types";
-import { formatMoney, parseAmount, payFigures } from "@/lib/template/format";
+import { formatDay, formatMoney, parseAmount, payFigures } from "@/lib/template/format";
 import { cn } from "@/lib/utils";
 
 const PAPER_LABEL = { a4: "A4 paper", letter: "US Letter paper" } as const;
+const LOCKED = new Set<string>(LOCKED_IN_CORRECTIONS);
 
 // Below this width the form and the preview take turns (the toggle); the hidden one isn't rendered.
 const SIDE_BY_SIDE = "(min-width: 1024px)";
@@ -65,6 +68,7 @@ export function LetterEditor({
   today,
   price,
   jurisdictions,
+  correction,
 }: {
   letterId: string;
   initialState: LetterState;
@@ -75,12 +79,16 @@ export function LetterEditor({
   today: string;
   price: string;
   jurisdictions: JurisdictionOption[];
+  /** A free correction of a paid letter: the version it corrects and when the free period ends. */
+  correction?: { version: number; until: string };
 }) {
   const router = useRouter();
   const [state, setState] = useState(initialState);
   const [view, setView] = useState<"form" | "preview">("form");
   const [flash, setFlash] = useState<string | null>(null);
   const [touched, setTouched] = useState<Set<string>>(() => new Set());
+  const [confirmIssue, setConfirmIssue] = useState(false);
+  const [issuing, setIssuing] = useState(false);
   const nameEdited = useRef(initialState.name !== DEFAULT_LETTER_NAME && initialState.name !== automaticName(initialState.values));
 
   // A copy kept on this device after a failed save comes back on reload (after hydration, so the server's
@@ -138,7 +146,7 @@ export function LetterEditor({
     const value = state.values[field.key];
     const error = touched.has(field.key) || !isEmptyValue(value) ? (fieldError(field, value, today) ?? cross[field.key]) : undefined;
     if (error) return { kind: "error", text: error };
-    if (missingKeys.has(field.key)) return { kind: "required", text: "Required. Fill this in before you pay." };
+    if (missingKeys.has(field.key)) return { kind: "required", text: correction ? "Required. Fill this in before you issue the correction." : "Required. Fill this in before you pay." };
     if (field.key === "pay.base_amount" && pay) {
       return { kind: "info", text: `That is ${formatMoney(pay.perInstalment, context.jurisdiction.currency, context.jurisdiction.locale, true)} in each of ${pay.instalments} payments a year.` };
     }
@@ -187,16 +195,45 @@ export function LetterEditor({
     if (next) jumpTo(next.key);
   };
 
-  const payAndDownload = async () => {
+  // Before paying or issuing a correction: everything saved, nothing missing or invalid.
+  const readyToIssue = async (): Promise<boolean> => {
     const saved = await autosave.flush();
-    if (missing[0]) return jumpTo(missing[0].key);
+    if (missing[0]) {
+      jumpTo(missing[0].key);
+      return false;
+    }
     const invalid = sections.flatMap((s) => fieldsBySection.get(s.key) ?? []).find((f) => fieldError(f, state.values[f.key], today) ?? cross[f.key]);
     if (invalid) {
       setTouched((current) => new Set([...current, invalid.key]));
-      return jumpTo(invalid.key);
+      jumpTo(invalid.key);
+      return false;
     }
-    if (!saved) return toast("Save your changes first: the letter you pay for must match the screen.");
-    router.push(`/letters/${letterId}/checkout`);
+    if (!saved) {
+      toast(correction ? "Save your changes first: the corrected letter must match the screen." : "Save your changes first: the letter you pay for must match the screen.");
+      return false;
+    }
+    return true;
+  };
+
+  const payAndDownload = async () => {
+    if (await readyToIssue()) router.push(`/letters/${letterId}/checkout`);
+  };
+
+  const askToIssueCorrection = async () => {
+    if (await readyToIssue()) setConfirmIssue(true);
+  };
+
+  const issueCorrection = async () => {
+    setIssuing(true);
+    const response = await fetch(`/api/letters/${letterId}/corrections`, { method: "POST" }).catch(() => null);
+    const body = (await response?.json().catch(() => null)) as { version?: number; error?: string } | null;
+    if (!response?.ok || !body?.version) {
+      setIssuing(false);
+      setConfirmIssue(false);
+      toast(body?.error ?? "We couldn’t issue the corrected version. Check your connection and try again.");
+      return;
+    }
+    router.push(`/letters/${letterId}`);
   };
 
   // The tab opens straight away (inside the click, so pop-up blockers allow it); the PDF loads once any pending
@@ -240,7 +277,7 @@ export function LetterEditor({
       <header className="flex min-h-[68px] flex-wrap items-center gap-x-4 gap-y-2.5 border-b border-line bg-white px-3 py-2.5 md:px-5">
         <div className="flex min-w-0 flex-[1_1_320px] items-center gap-2">
           <Button asChild variant="ghost" size="icon">
-            <Link href="/dashboard" aria-label="Back to letters">
+            <Link href={correction ? `/letters/${letterId}` : "/dashboard"} aria-label={correction ? "Back to the letter" : "Back to letters"}>
               <ArrowLeft aria-hidden />
             </Link>
           </Button>
@@ -307,9 +344,40 @@ export function LetterEditor({
           <span id="preview-pdf-note" className="sr-only">
             Opens a watermarked PDF in a new tab.
           </span>
-          <Button onClick={() => void payAndDownload()}>Pay &amp; download{price ? ` · ${price}` : ""}</Button>
+          {correction ? (
+            <Button onClick={() => void askToIssueCorrection()}>
+              <FilePenLine aria-hidden />
+              Issue corrected version
+            </Button>
+          ) : (
+            <Button onClick={() => void payAndDownload()}>Pay &amp; download{price ? ` · ${price}` : ""}</Button>
+          )}
         </div>
       </header>
+
+      {correction ? (
+        <>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-[#BCD0F0] bg-info-50 px-5 py-2.5 text-sm text-info">
+            <FilePenLine aria-hidden className="size-4 shrink-0" />
+            <span className="flex-1">
+              <strong className="font-semibold">Correcting version {correction.version}</strong>, free until{" "}
+              {formatDay(correction.until)}. Version {correction.version} stays in the
+              letter’s history. The candidate’s name and the job title can’t change.
+            </span>
+          </div>
+          <ConfirmDialog
+            open={confirmIssue}
+            onOpenChange={(open) => !issuing && setConfirmIssue(open)}
+            title={`Issue version ${correction.version + 1}?`}
+            description={`The corrected letter becomes the latest version, with a new PDF. Version ${correction.version} stays available to download from the letter’s page.`}
+            confirmLabel={`Issue version ${correction.version + 1}`}
+            pendingLabel="Issuing…"
+            tone="primary"
+            pending={issuing}
+            onConfirm={() => void issueCorrection()}
+          />
+        </>
+      ) : null}
 
       {autosave.status === "conflict" ? (
         <div role="alert" className="flex flex-wrap items-center gap-3 border-b-2 border-danger bg-[#FFFBFA] px-5 py-3 text-sm text-danger-700">
@@ -345,7 +413,7 @@ export function LetterEditor({
         <section aria-labelledby="form-heading" className={cn("overflow-y-auto border-line bg-canvas px-4 pt-6 pb-28 md:px-6 lg:border-r", view === "preview" && "max-lg:hidden")}>
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <p className="text-[13px] font-semibold text-evergreen-700">Step 2 of 3 · Fill in the details</p>
+              <p className="text-[13px] font-semibold text-evergreen-700">{correction ? `Free correction of version ${correction.version}` : "Step 2 of 3 · Fill in the details"}</p>
               <h1 id="form-heading" className="font-display text-[30px] leading-tight font-medium">
                 Letter details
               </h1>
@@ -378,7 +446,7 @@ export function LetterEditor({
             </span>
             <span className="inline-flex h-7 items-center rounded-full bg-white px-2.5 ring-1 ring-line">{PAPER_LABEL[context.jurisdiction.paperSize]}</span>
             <span className="inline-flex h-7 items-center rounded-full bg-white px-2.5 ring-1 ring-line">English</span>
-            <ChangeCountryDialog jurisdictions={jurisdictions} current={context.jurisdiction.code} today={today} onConfirm={changeCountry} />
+            {correction ? null : <ChangeCountryDialog jurisdictions={jurisdictions} current={context.jurisdiction.code} today={today} onConfirm={changeCountry} />}
           </div>
 
           {doc.unreviewed ? (
@@ -423,6 +491,7 @@ export function LetterEditor({
                 badge={section.variesByCountry ? clause.jurisdictionName : null}
                 currency={context.jurisdiction.currency}
                 flash={flash}
+                locked={correction ? LOCKED : undefined}
                 onChange={setValue}
                 onBlur={() => autosave.retry()}
                 onRemove={() => removeSection(section.key, clause.title || section.title)}

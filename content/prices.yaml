@@ -1,19 +1,26 @@
 # display: shown on the website and at checkout. charge: the amount and currency sent to PayU.
-# Until PayU confirms which currencies the account can charge in, the INR charge price is active.
+# Prices are shown in rupees, the currency PayU charges in, so what people see is what their card is charged.
 - product: offer_letter
   purpose: display
-  currency: USD
-  amount_minor: 900
+  currency: INR
+  amount_minor: 79900
   active: true
 - product: offer_letter
   purpose: charge
   currency: INR
   amount_minor: 79900
   active: true
-  notes: Placeholder. Set the real rupee amount once PayU confirms international payments.
+  notes: Set the real rupee amount before going live.
+# Earlier prices, kept so the seed doesn't add them again.
+- product: offer_letter
+  purpose: display
+  currency: USD
+  amount_minor: 900
+  active: false
+  notes: Shown until 2026-10-17, when the site switched to showing rupees.
 - product: offer_letter
   purpose: charge
   currency: USD
   amount_minor: 900
   active: false
-  notes: Switch on (and the INR row off) when PayU approves charging in USD.
+  notes: Only if PayU approves charging in USD (switch the INR rows off then).

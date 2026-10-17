@@ -10,6 +10,17 @@ const schema = z.object({
   CHROME_EXECUTABLE_PATH: z.string().optional(),
   /** Where headless Chrome opens the print page. Defaults to the deployment URL, then the app URL. */
   RENDER_BASE_URL: z.url().optional(),
+  /** simulator (local Supabase only), test (PayU sandbox) or live. Defaults to simulator on a local stack. */
+  PAYU_MODE: z.enum(["simulator", "test", "live"]).optional(),
+  PAYU_MERCHANT_KEY: z.string().min(1).optional(),
+  PAYU_MERCHANT_SALT: z.string().min(1).optional(),
+  /** Vercel sends it as "Authorization: Bearer <CRON_SECRET>" to scheduled jobs. */
+  CRON_SECRET: z.string().min(16).optional(),
+  RESEND_API_KEY: z.string().min(1).optional(),
+  /** e.g. "Offer Letter PDF <receipts@your-domain>"; the domain must be verified in Resend. */
+  EMAIL_FROM: z.string().min(3).optional(),
+  /** The seller printed on receipts: legal name, address, tax number. "|" starts a new line. */
+  RECEIPT_SELLER: z.string().max(500).optional(),
 });
 
 let cached: z.infer<typeof schema> | undefined;
@@ -21,6 +32,13 @@ export function serverEnv() {
     RENDER_TOKEN_SECRET: process.env.RENDER_TOKEN_SECRET,
     CHROME_EXECUTABLE_PATH: process.env.CHROME_EXECUTABLE_PATH || undefined,
     RENDER_BASE_URL: process.env.RENDER_BASE_URL || undefined,
+    PAYU_MODE: process.env.PAYU_MODE || undefined,
+    PAYU_MERCHANT_KEY: process.env.PAYU_MERCHANT_KEY || undefined,
+    PAYU_MERCHANT_SALT: process.env.PAYU_MERCHANT_SALT || undefined,
+    CRON_SECRET: process.env.CRON_SECRET || undefined,
+    RESEND_API_KEY: process.env.RESEND_API_KEY || undefined,
+    EMAIL_FROM: process.env.EMAIL_FROM || undefined,
+    RECEIPT_SELLER: process.env.RECEIPT_SELLER || undefined,
   });
   return cached;
 }

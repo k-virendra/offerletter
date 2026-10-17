@@ -2,8 +2,9 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { publicEnv } from "@/lib/env";
 import type { Database } from "./database.types";
+import { resilientFetch } from "./fetch";
 
-const SIGNED_IN_AREAS = ["/dashboard", "/companies", "/letters", "/checkout", "/settings", "/admin"];
+const SIGNED_IN_AREAS = ["/dashboard", "/companies", "/letters", "/checkout", "/receipts", "/settings", "/admin"];
 
 function isSignedInArea(pathname: string) {
   return SIGNED_IN_AREAS.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
@@ -17,6 +18,7 @@ export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient<Database>(publicEnv.NEXT_PUBLIC_SUPABASE_URL, publicEnv.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
+    global: { fetch: resilientFetch },
     cookies: {
       getAll() {
         return request.cookies.getAll();

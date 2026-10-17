@@ -62,9 +62,16 @@ export const listJurisdictions = cache(async (): Promise<JurisdictionOption[]> =
 });
 
 /** Everything needed to build letters for one jurisdiction, or null when it can't be used. */
-export const loadLetterContext = cache(async (jurisdictionCode: string): Promise<LetterContext | null> => {
+export const loadLetterContext = cache((jurisdictionCode: string) => buildContext(jurisdictionCode, { unreviewed: allowUnreviewedClauses(), admin: false }));
+
+/**
+ * For the admin clause library's previews: drafts count and switched-off countries load too. Never use it for
+ * letters people pay for.
+ */
+export const loadAdminPreviewContext = cache((jurisdictionCode: string) => buildContext(jurisdictionCode, { unreviewed: true, admin: true }));
+
+async function buildContext(jurisdictionCode: string, { unreviewed, admin }: { unreviewed: boolean; admin: boolean }): Promise<LetterContext | null> {
   const db = adminClient();
-  const unreviewed = allowUnreviewedClauses();
 
   const { data: chainCodes } = await db.rpc("jurisdiction_chain", { p_code: jurisdictionCode });
   if (!chainCodes?.length) return null;
@@ -89,7 +96,7 @@ export const loadLetterContext = cache(async (jurisdictionCode: string): Promise
 
   const own = jurisdictions.data?.find((j) => j.code === jurisdictionCode);
   // Quebec (not selectable) never gets letters, even in development; switched-off countries only locally.
-  if (!own || !own.selectable || (!unreviewed && !own.enabled)) return null;
+  if (!own || (!admin && (!own.selectable || (!unreviewed && !own.enabled)))) return null;
   const chain = chainCodes.map((code) => ({ code, name: jurisdictions.data?.find((j) => j.code === code)?.name ?? code }));
 
   return {
@@ -116,4 +123,4 @@ export const loadLetterContext = cache(async (jurisdictionCode: string): Promise
     templates: (templates.data ?? []).map((t) => ({ key: t.key, name: t.name, description: t.description, defaultAccent: t.default_accent })),
     phrases: resolvePhrases(phrases.data ?? [], chain),
   };
-});
+}

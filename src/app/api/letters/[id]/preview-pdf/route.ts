@@ -21,7 +21,7 @@ export async function GET(_request: Request, { params }: RouteContext<"/api/lett
 
   // RLS: only the author can read the letter.
   const supabase = await createClient();
-  const { data: letter } = await supabase.from("letters").select("id, name, status").eq("id", id).maybeSingle();
+  const { data: letter } = await supabase.from("letters").select("id, name, status").eq("id", id).eq("author_id", user.id).maybeSingle();
   if (!letter) return messagePage(404, "Letter not found", "We couldn’t find this letter in your account.");
 
   const [perUser, perIp] = await Promise.all([takeRateLimit(`pdf-preview:${user.id}`, 600, 10), takeRateLimit(`pdf-preview:ip:${await clientKey()}`, 600, 30)]);

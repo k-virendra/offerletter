@@ -2,9 +2,14 @@ import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { Wordmark } from "@/components/logo";
 import { Button } from "@/components/ui/button";
+import { displayPriceLabel } from "@/lib/payments/prices.server";
+
+// The price comes from the database; the page is rebuilt every few minutes so a new price shows without a deploy.
+export const revalidate = 300;
 
 // Interim home page. The full landing page from the design (gallery, pricing, FAQ) arrives with the legal pages.
-export default function HomePage() {
+export default async function HomePage() {
+  const price = await displayPriceLabel();
   return (
     <div className="min-h-screen bg-white" data-no-print>
       <header className="border-b border-line-soft">
@@ -32,7 +37,7 @@ export default function HomePage() {
             The right offer letter for every country you hire in.
           </h1>
           <p className="mt-5 max-w-[560px] text-[19px] leading-relaxed text-ink-2">
-            Choose a country and a style, fill in the details, then download a print-ready PDF in your company’s colours for US$9.
+            Choose a country and a style, fill in the details, then download a print-ready PDF in your company’s colours{price ? ` for ${price}` : ""}.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Button asChild size="lg">

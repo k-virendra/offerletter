@@ -6,10 +6,13 @@ import { getUser } from "@/lib/auth";
 import { normalizeHex } from "@/lib/color";
 import { loadLetterContext } from "@/lib/letter/context.server";
 import { moveToJurisdiction, sanitizeValues } from "@/lib/letter/fields";
-import { letterState } from "@/lib/letter/letters.server";
+import { changedLockedField } from "@/lib/letter/corrections";
+import { correctionOpen, letterState } from "@/lib/letter/letters.server";
 import { DEFAULT_LETTER_NAME } from "@/lib/letter/naming";
 import type { FieldValues } from "@/lib/letter/types";
+import { letterWording } from "@/lib/pdf/inputs.server";
 import { takeRateLimit } from "@/lib/rate-limit";
+import { adminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 const uuid = z.uuid();
@@ -38,6 +41,7 @@ export async function createLetter(formData: FormData): Promise<CreateLetterResu
     .from("companies")
     .select("id, archived_at, suspended_at, signatory_name, signatory_title")
     .eq("id", companyId.data)
+    .eq("owner_id", user.id)
     .maybeSingle();
   if (!company) return { ok: false, message: "We couldn’t find this company. Choose another one." };
   if (company.suspended_at) return { ok: false, message: "New letters for this company are paused. Contact support to find out more." };
@@ -96,12 +100,22 @@ export async function saveDraft(letterId: string, baseEditedAt: string, patch: D
   if (!parsed.success) return { ok: false, reason: "invalid", message: "Some changes couldn’t be saved." };
 
   const supabase = await createClient();
-  const { data: letter } = await supabase.from("letters").select("status, jurisdiction_code").eq("id", letterId).maybeSingle();
+  const { data: letter } = await supabase
+    .from("letters")
+    .select("id, status, author_id, jurisdiction_code, current_version, correction_until, field_values")
+    .eq("id", letterId)
+    .eq("author_id", user.id)
+    .maybeSingle();
   if (!letter) return { ok: false, reason: "gone", message: "We couldn’t find this letter. It may have been deleted." };
-  if (letter.status !== "draft") return { ok: false, reason: "gone", message: "This letter has been paid for, so it can’t be edited here." };
+  // A paid letter is saved only as a free correction, by its author, inside the correction window.
+  const correcting = letter.status === "paid";
+  if (correcting && (letter.author_id !== user.id || !correctionOpen(letter))) {
+    return { ok: false, reason: "gone", message: "The free correction period for this letter has ended, so it can’t be changed." };
+  }
 
-  const context = await loadLetterContext(letter.jurisdiction_code);
-  if (!context) return { ok: false, reason: "invalid", message: "Letters for this country aren’t available any more." };
+  const wording = await letterWording(letter);
+  if (!wording) return { ok: false, reason: "invalid", message: "Letters for this country aren’t available any more." };
+  const { context } = wording;
 
   const update: { name?: string; template_key?: string; accent_color?: string | null; removed_sections?: string[]; field_values?: FieldValues } = {};
   const { name, templateKey, accentColor, removedSections, values } = parsed.data;
@@ -115,16 +129,16 @@ export async function saveDraft(letterId: string, baseEditedAt: string, patch: D
     const known = new Set(context.sections.map((s) => s.key));
     update.removed_sections = [...new Set(removedSections.filter((key) => known.has(key)))];
   }
-  if (values !== undefined) update.field_values = sanitizeValues(context.fields, values);
+  if (values !== undefined) {
+    update.field_values = sanitizeValues(context.fields, values);
+    if (correcting && changedLockedField(letter.field_values as FieldValues, update.field_values)) {
+      return { ok: false, reason: "invalid", message: "The candidate’s name and the job title can’t change in a correction." };
+    }
+  }
 
-  const { data: saved, error } = await supabase
-    .from("letters")
-    .update(update)
-    .eq("id", letterId)
-    .eq("status", "draft")
-    .eq("edited_at", baseEditedAt)
-    .select("edited_at")
-    .maybeSingle();
+  // Drafts are saved as the user (RLS allows drafts only); corrections by the server, after the checks above.
+  const query = (correcting ? adminClient() : supabase).from("letters").update(update).eq("id", letterId).eq("status", letter.status).eq("edited_at", baseEditedAt);
+  const { data: saved, error } = await (correcting ? query.gt("correction_until", new Date().toISOString()) : query).select("edited_at").maybeSingle();
   if (error?.message === "section_locked") {
     return { ok: false, reason: "locked", message: "That section is required in this country, so it stays in the letter." };
   }
@@ -154,6 +168,7 @@ export async function changeLetterCountry(letterId: string, baseEditedAt: string
     .from("letters")
     .select("status, jurisdiction_code, template_key, name, accent_color, field_values, removed_sections, edited_at")
     .eq("id", letterId)
+    .eq("author_id", user.id)
     .maybeSingle();
   if (!letter || letter.status !== "draft") return { ok: false, reason: "gone", message: "Only draft letters can change country." };
   if (letter.edited_at !== baseEditedAt) {

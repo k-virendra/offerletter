@@ -1,6 +1,7 @@
 import "server-only";
 import { LOGO_BUCKET } from "@/lib/companies/queries";
 import { countryName } from "@/lib/countries";
+import { getUser } from "@/lib/auth";
 import { adminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { FieldValues, LetterCompany, LetterState } from "./types";
@@ -52,12 +53,18 @@ export async function letterCompany(row: CompanyRow, seconds = EDITOR_LOGO_SECON
   };
 }
 
+/** One of the signed-in user's own letters (an admin's session can read others', but they don't open here). */
 export async function getLetter(id: string) {
+  const user = await getUser();
+  if (!user) return null;
   const supabase = await createClient();
   const { data } = await supabase
     .from("letters")
-    .select(`id, name, status, company_id, jurisdiction_code, template_key, field_values, removed_sections, accent_color, edited_at, companies(${COMPANY_FOR_LETTER}, archived_at, suspended_at)`)
+    .select(
+      `id, name, status, author_id, company_id, jurisdiction_code, template_key, field_values, removed_sections, accent_color, edited_at, current_version, correction_until, companies(${COMPANY_FOR_LETTER}, archived_at, suspended_at)`,
+    )
     .eq("id", id)
+    .eq("author_id", user.id)
     .maybeSingle();
   return data;
 }
@@ -72,15 +79,15 @@ export function letterState(row: { name: string; template_key: string; accent_co
   };
 }
 
-/** The price shown on the Pay button and at checkout, e.g. "US$9". */
-export async function displayPrice(): Promise<string> {
-  const supabase = await createClient();
-  const { data } = await supabase.from("prices").select("currency, amount_minor").eq("purpose", "display").eq("active", true).maybeSingle();
-  if (!data) return "";
-  const amount = data.amount_minor / 100;
-  return new Intl.NumberFormat("en-GB", {
-    style: "currency",
-    currency: data.currency,
-    minimumFractionDigits: Number.isInteger(amount) ? 0 : 2,
-  }).format(amount);
+/** The price shown on the Pay button, e.g. "₹799". */
+export { displayPriceLabel as displayPrice } from "@/lib/payments/prices.server";
+
+/** Whole days left in a correction window (0 once it has closed). */
+export function correctionDaysLeft(until: string | null, now = new Date()): number {
+  return until ? Math.max(0, Math.ceil((new Date(until).getTime() - now.getTime()) / 86_400_000)) : 0;
+}
+
+/** A paid letter can be corrected for free until its correction window closes. */
+export function correctionOpen(letter: { status: string; current_version: number; correction_until: string | null }, now = new Date()): boolean {
+  return letter.status === "paid" && letter.current_version > 0 && Boolean(letter.correction_until) && new Date(letter.correction_until!) > now;
 }

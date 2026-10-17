@@ -43,7 +43,7 @@ export async function saveCompany(formData: FormData): Promise<SaveCompanyResult
 
   const supabase = await createClient();
   const saved = existingId
-    ? await supabase.from("companies").update(parsed.data).eq("id", existingId.data).select("id, legal_name, logo_path").maybeSingle()
+    ? await supabase.from("companies").update(parsed.data).eq("id", existingId.data).eq("owner_id", user.id).select("id, legal_name, logo_path").maybeSingle()
     : await supabase.from("companies").insert({ ...parsed.data, owner_id: user.id }).select("id, legal_name, logo_path").single();
 
   if (saved.error || !saved.data) {
@@ -96,7 +96,7 @@ async function replaceLogo(
     next = { logo_path: path, logo_width: logo.width, logo_height: logo.height };
   }
 
-  const { error } = await supabase.from("companies").update(next).eq("id", id);
+  const { error } = await supabase.from("companies").update(next).eq("id", id).eq("owner_id", ownerId);
   if (error) {
     console.error("logo update failed", error.code, error.message);
     if (next.logo_path) await storage.remove([next.logo_path]);
@@ -124,7 +124,7 @@ async function setArchived(id: string, archivedAt: string | null): Promise<Compa
   if (!companyId.safeParse(id).success) return { ok: false, message: "We couldn’t find this company." };
 
   const supabase = await createClient();
-  const { data, error } = await supabase.from("companies").update({ archived_at: archivedAt }).eq("id", id).select("legal_name").maybeSingle();
+  const { data, error } = await supabase.from("companies").update({ archived_at: archivedAt }).eq("id", id).eq("owner_id", user.id).select("legal_name").maybeSingle();
   if (error || !data) return { ok: false, message: "We couldn’t find this company." };
 
   revalidatePath("/", "layout");
@@ -138,7 +138,7 @@ export async function deleteCompany(id: string): Promise<CompanyActionResult> {
   if (!companyId.safeParse(id).success) return { ok: false, message: "We couldn’t find this company." };
 
   const supabase = await createClient();
-  const { data, error } = await supabase.from("companies").delete().eq("id", id).select("legal_name").maybeSingle();
+  const { data, error } = await supabase.from("companies").delete().eq("id", id).eq("owner_id", user.id).select("legal_name").maybeSingle();
   if (error?.message === "company_has_paid_letters") {
     return { ok: false, message: "This company has paid letters, so it can only be archived." };
   }

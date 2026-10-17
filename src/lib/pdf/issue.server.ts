@@ -5,10 +5,10 @@ import type { Json } from "@/lib/supabase/database.types";
 import { adminClient } from "@/lib/supabase/admin";
 import { snapshotDraft, versionInputs, type PrintInputs } from "./inputs.server";
 import { renderLetterPdf, type PdfMetadata } from "./render.server";
-import { contentHash } from "./snapshot";
+import { contentHash, type IssuedCompany, type IssuedSnapshot } from "./snapshot";
 
-// Issuing: freezing a paid draft as an immutable version and storing its final PDF. Server-only, with the secret
-// key; the payment code calls this after PayU confirms the payment (never the browser).
+// Issuing: freezing a letter as an immutable version and storing its final PDF. Server-only, with the secret key;
+// called after PayU confirms a payment and for free corrections (never directly by the browser).
 
 export const LETTERS_BUCKET = "letters";
 
@@ -37,19 +37,32 @@ export function letterMetadata(inputs: Pick<PrintInputs, "context" | "state" | "
 
 export type IssuedVersion = { versionId: string; version: number; pdfPath: string; contentHash: string };
 
-export async function issueLetterVersion(letterId: string, { note }: { note?: string } = {}): Promise<IssuedVersion> {
-  const frozen = await snapshotDraft(letterId);
-  if (!frozen) throw new IssueError("not_found", "Letter not found");
-  const { snapshot, company, letter } = frozen;
+export type FrozenLetter = { snapshot: IssuedSnapshot; company: IssuedCompany };
+
+/**
+ * Issues a version of a letter: from `frozen` (the letter as it was when the user paid, or a correction built on
+ * the issued wording) or else from the letter as it is now. `version` defaults to the next one. Safe to call twice
+ * for the same version: PayU's return and its webhook can race, and the loser gets the version the winner made.
+ */
+export async function issueLetterVersion(
+  letterId: string,
+  { note, frozen, version: wanted }: { note?: string; frozen?: FrozenLetter; version?: number } = {},
+): Promise<IssuedVersion> {
+  const db = adminClient();
+  // A frozen letter carries its own wording, so it issues even if its country has since been switched off.
+  const current = frozen
+    ? await db.from("letters").select("current_version, author_id").eq("id", letterId).maybeSingle().then(({ data }) => data && { ...frozen, letter: data })
+    : await snapshotDraft(letterId);
+  if (!current) throw new IssueError("not_found", "Letter not found");
+  const { snapshot, company, letter } = current;
 
   const problems = blockingProblems(snapshot.context, snapshot.state, snapshot.date);
   if (problems.missing.length || problems.invalid.length) {
     throw new IssueError("incomplete", `The letter isn't complete: ${[...problems.missing.map((f) => f.key), ...problems.invalid.map((p) => p.field.key)].join(", ")}`);
   }
 
-  const db = adminClient();
   const hash = contentHash(snapshot, company);
-  const version = letter.current_version + 1;
+  const version = wanted ?? letter.current_version + 1;
   const pinned = Object.fromEntries(
     letterSections(snapshot.context, snapshot.state.removedSections).map((section) => [section.key, snapshot.context.clauses[section.key]!.id]),
   );
@@ -66,9 +79,16 @@ export async function issueLetterVersion(letterId: string, { note }: { note?: st
     })
     .select("id")
     .single();
+  if (error?.code === "23505") {
+    // Someone else issued this version a moment ago (the other of return and webhook): use theirs.
+    const { data: existing } = await db.from("letter_versions").select("id, version, content_hash").eq("letter_id", letterId).eq("version", version).single();
+    if (!existing) throw new IssueError("storage", "The version was issued twice and can't be read back");
+    const pdfPath = await ensureVersionPdf(existing.id);
+    return { versionId: existing.id, version: existing.version, pdfPath, contentHash: existing.content_hash };
+  }
   if (error || !inserted) throw new IssueError("storage", `Couldn't save the version: ${error?.message}`);
 
-  const { error: letterError } = await db.from("letters").update({ current_version: version, pinned_clauses: pinned }).eq("id", letterId);
+  const { error: letterError } = await db.from("letters").update({ current_version: version, pinned_clauses: pinned }).eq("id", letterId).lt("current_version", version);
   if (letterError) throw new IssueError("storage", `Couldn't update the letter: ${letterError.message}`);
 
   const pdfPath = await ensureVersionPdf(inserted.id, { authorId: letter.author_id, letterId, version, hash });

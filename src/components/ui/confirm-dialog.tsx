@@ -15,6 +15,8 @@ export function ConfirmDialog({
   description,
   confirmLabel,
   pending,
+  pendingLabel = "Deleting…",
+  tone = "danger",
   onConfirm,
 }: {
   open: boolean;
@@ -23,6 +25,10 @@ export function ConfirmDialog({
   description: ReactNode;
   confirmLabel: string;
   pending?: boolean;
+  /** Shown on the confirm button while `pending`. */
+  pendingLabel?: string;
+  /** "primary" for confirmations that aren't destructive. */
+  tone?: "danger" | "primary";
   onConfirm: () => void;
 }) {
   return (
@@ -37,14 +43,14 @@ export function ConfirmDialog({
               <Button variant="outline">Cancel</Button>
             </AlertDialog.Cancel>
             <Button
-              variant="danger"
+              variant={tone}
               disabled={pending}
               onClick={(event) => {
                 event.preventDefault();
                 onConfirm();
               }}
             >
-              {pending ? "Deleting…" : confirmLabel}
+              {pending ? pendingLabel : confirmLabel}
             </Button>
           </div>
         </AlertDialog.Content>

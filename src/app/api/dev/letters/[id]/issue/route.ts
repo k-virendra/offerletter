@@ -4,8 +4,8 @@ import { isLocalStack } from "@/lib/env.server";
 import { IssueError, issueLetterVersion } from "@/lib/pdf/issue.server";
 import { createClient } from "@/lib/supabase/server";
 
-// DEVELOPMENT ONLY: issues a version of one of your drafts without payment, so final PDFs can be tried and tested
-// before payments exist. Refused unless the app talks to a local Supabase stack. Payments replace this.
+// DEVELOPMENT ONLY: issues a version of one of your drafts without payment, so the PDF tests can make many final
+// PDFs without going through checkout. Refused unless the app talks to a local Supabase stack.
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -18,7 +18,7 @@ export async function POST(_request: Request, { params }: RouteContext<"/api/dev
   if (!z.uuid().safeParse(id).success) return Response.json({ error: "Not found" }, { status: 404 });
 
   const supabase = await createClient();
-  const { data: letter } = await supabase.from("letters").select("id").eq("id", id).maybeSingle();
+  const { data: letter } = await supabase.from("letters").select("id").eq("id", id).eq("author_id", user.id).maybeSingle();
   if (!letter) return Response.json({ error: "Not found" }, { status: 404 });
 
   try {

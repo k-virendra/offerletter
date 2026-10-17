@@ -33,7 +33,7 @@ export function Button({ className, variant, size, asChild = false, type, ...pro
   const Component = asChild ? Slot.Root : "button";
   return (
     <Component
-      className={cn(buttonVariants({ variant, size }), variant === "link" && "min-h-0", className)}
+      className={cn(buttonVariants({ variant, size }), variant === "link" && "min-h-0 px-0", className)}
       {...(asChild ? {} : { type: type ?? "button" })}
       {...props}
     />

@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { parse } from "yaml";
 import { z } from "zod";
-import { parseTemplate, placeholderKeys as printedKeys, templateKeys, type TemplateNode } from "../src/lib/template/parse";
+import { checkClause } from "../src/lib/template/clause-check";
 import {
   clauseFileSchema,
   fieldSchema,
@@ -52,32 +52,7 @@ function unique<T>(items: T[], key: (item: T) => string, file: string) {
   }
 }
 
-// {{field.key}}, {{#if field.key}} and {{/if}} placeholders in clause text.
-export function placeholderKeys(body: string): string[] {
-  const keys = new Set<string>();
-  for (const match of body.matchAll(/\{\{\s*([^{}]*?)\s*\}\}/g)) {
-    for (const key of match[1]?.match(/[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)+/g) ?? []) keys.add(key);
-  }
-  return [...keys];
-}
-
-// Values every clause may use that are not form fields (company details, dates, derived amounts).
-export const BUILT_IN_PLACEHOLDERS = new Set([
-  "company.legal_name",
-  "company.trading_name",
-  "company.display_name",
-  "company.registered_address",
-  "company.registration_number",
-  "company.website",
-  "company.contact_phone",
-  "company.contact_email",
-  "letter.date",
-  "jurisdiction.name",
-  "pay.annual_amount",
-  "pay.period_amount",
-  "pay.frequency_label",
-  "pay.instalments",
-]);
+export { BUILT_IN_PLACEHOLDERS, placeholderKeys } from "../src/lib/template/clause-check";
 
 /** A jurisdiction and its parents, most specific first. */
 export function jurisdictionChain(jurisdictions: JurisdictionContent[], code: string): string[] {
@@ -90,9 +65,6 @@ export function jurisdictionChain(jurisdictions: JurisdictionContent[], code: st
   }
   return chain;
 }
-
-/** Sections whose fields any clause may use: they are in every letter and can't be removed. */
-const SHARED_SECTIONS = new Set(["candidate", "position", "compensation", "acceptance"]);
 
 export function loadContent(): Content {
   const jurisdictions = readYaml("jurisdictions.yaml", z.array(jurisdictionSchema));
@@ -132,7 +104,6 @@ export function loadContent(): Content {
     }
   }
 
-  const fieldKeys = new Set(fields.map((f) => f.key));
   const clauseDir = path.join(CONTENT_DIR, "clauses");
   const clauseFiles = readdirSync(clauseDir)
     .filter((name) => name.endsWith(".yaml"))
@@ -144,31 +115,10 @@ export function loadContent(): Content {
       unique(content.clauses, (c) => `${c.section}@${c.version}`, file);
       for (const clause of content.clauses) {
         if (!sectionKeys.has(clause.section)) throw new Error(`${file}: unknown section ${clause.section}`);
-        let nodes: TemplateNode[];
-        try {
-          nodes = parseTemplate(clause.body);
-        } catch (error) {
-          throw new Error(`${file}: ${clause.section}: ${(error as Error).message}`);
-        }
         const chain = jurisdictionChain(jurisdictions, content.jurisdiction);
-        for (const key of new Set([...templateKeys(nodes), ...placeholderKeys(clause.body)])) {
-          if (!fieldKeys.has(key) && !BUILT_IN_PLACEHOLDERS.has(key)) {
-            throw new Error(`${file}: ${clause.section} uses unknown placeholder {{${key}}}`);
-          }
-          // A field limited to other countries never has a value here.
-          const field = fields.find((f) => f.key === key);
-          if (field?.jurisdictions && !field.jurisdictions.some((code) => chain.includes(code))) {
-            throw new Error(`${file}: ${clause.section} uses {{${key}}}, which only applies in ${field.jurisdictions.join(", ")}`);
-          }
-        }
-        // A printed value from another section would have no form field when that section is missing or removed.
-        // (Conditions may test any field: a missing one is simply false.)
-        for (const key of printedKeys(nodes)) {
-          const field = fields.find((f) => f.key === key);
-          if (field && field.section_key !== clause.section && !SHARED_SECTIONS.has(field.section_key)) {
-            throw new Error(`${file}: ${clause.section} prints {{${key}}} from the ${field.section_key} section`);
-          }
-        }
+        const fieldInfo = fields.map((f) => ({ key: f.key, sectionKey: f.section_key, jurisdictions: f.jurisdictions ?? null }));
+        const check = checkClause(clause.body, { sectionKey: clause.section, fields: fieldInfo, chain });
+        if (check.errors.length) throw new Error(`${file}: ${clause.section}: ${check.errors[0]}`);
       }
       return { file, content };
     });

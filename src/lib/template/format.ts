@@ -18,6 +18,11 @@ export function todayIso(now = new Date()): string {
   return now.toISOString().slice(0, 10);
 }
 
+/** "17 October 2026" for a moment in time, on the same (UTC) calendar as todayIso and letter dates. */
+export function formatDay(value: string | Date): string {
+  return new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(value));
+}
+
 /** "78000", "78,000" and "78 000.50" all read as numbers; anything else is null. */
 export function parseAmount(value: string): number | null {
   const cleaned = value.trim().replace(/[\s, ]/g, "");

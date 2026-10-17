@@ -3,13 +3,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Wordmark } from "@/components/logo";
 import { publicEnv } from "@/lib/env";
+import { displayPriceLabel } from "@/lib/payments/prices.server";
 import { safeNext } from "@/lib/safe-next";
 import { SignInForm } from "./sign-in-form";
 
 export const metadata: Metadata = { title: "Sign in" };
 
 export default async function SignInPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  const params = await searchParams;
+  const [params, price] = await Promise.all([searchParams, displayPriceLabel()]);
   const next = safeNext(params.next);
   const error = typeof params.error === "string" ? params.error : undefined;
 
@@ -67,7 +68,7 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
             {[
               "Save up to 5 companies with logo, brand colour and signatory",
               "Wording for 8 countries, with state and province rules where they matter",
-              "Pay US$9 only when your letter is ready to download",
+              `Pay${price ? ` ${price}` : ""} only when your letter is ready to download`,
             ].map((item) => (
               <li key={item} className="flex gap-2.5">
                 <Check aria-hidden className="mt-0.5 size-5 shrink-0 text-evergreen-600" strokeWidth={2.4} />

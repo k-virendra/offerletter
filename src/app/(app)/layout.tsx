@@ -12,7 +12,7 @@ import { createClient } from "@/lib/supabase/server";
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
   const [profile, supabase] = await Promise.all([getProfile(), createClient()]);
-  const { count } = await supabase.from("companies").select("id", { count: "exact", head: true });
+  const { count } = await supabase.from("companies").select("id", { count: "exact", head: true }).eq("owner_id", user.id);
   const limit = profile?.company_limit ?? 5;
   const name = profile?.full_name || user.email || "Your account";
   const initials = (profile?.full_name || user.email || "?")

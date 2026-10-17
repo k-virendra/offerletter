@@ -6,9 +6,9 @@ import { LetterEditor } from "@/components/editor/letter-editor";
 import { Button } from "@/components/ui/button";
 import { requireUser } from "@/lib/auth";
 import { splitAddress } from "@/lib/letter/build";
-import { listJurisdictions, loadLetterContext } from "@/lib/letter/context.server";
-import { displayPrice, getLetter, letterCompany, letterState } from "@/lib/letter/letters.server";
-import { todayIso } from "@/lib/template/format";
+import { listJurisdictions } from "@/lib/letter/context.server";
+import { correctionOpen, displayPrice, getLetter, letterCompany, letterState } from "@/lib/letter/letters.server";
+import { letterWording } from "@/lib/pdf/inputs.server";
 
 export async function generateMetadata({ params }: PageProps<"/letters/[id]/edit">): Promise<Metadata> {
   const { id } = await params;
@@ -18,15 +18,17 @@ export async function generateMetadata({ params }: PageProps<"/letters/[id]/edit
 
 export default async function EditLetterPage({ params }: PageProps<"/letters/[id]/edit">) {
   const { id } = await params;
-  await requireUser(`/letters/${id}/edit`);
+  const user = await requireUser(`/letters/${id}/edit`);
   if (!z.uuid().safeParse(id).success) notFound();
 
   const letter = await getLetter(id);
   if (!letter || !letter.companies) notFound();
-  if (letter.status !== "draft") redirect(`/letters/${id}`);
+  // A paid letter opens here only for a free correction, with the wording it was issued with.
+  const correcting = letter.status === "paid";
+  if (correcting && (letter.author_id !== user.id || !correctionOpen(letter))) redirect(`/letters/${id}`);
 
-  const context = await loadLetterContext(letter.jurisdiction_code);
-  if (!context) {
+  const wording = await letterWording(letter);
+  if (!wording) {
     return (
       <main className="mx-auto flex min-h-dvh max-w-[560px] flex-col items-start justify-center gap-3 px-6">
         <h1 className="font-display text-3xl font-medium">This letter can’t be edited right now</h1>
@@ -38,6 +40,7 @@ export default async function EditLetterPage({ params }: PageProps<"/letters/[id
     );
   }
 
+  const { context, date } = wording;
   const row = letter.companies;
   const [company, price, jurisdictions] = await Promise.all([letterCompany(row), displayPrice(), listJurisdictions()]);
   const summary = [splitAddress(row.registered_address).join(", "), row.registration_number, `Signs: ${row.signatory_name}, ${row.signatory_title}`].join(" · ");
@@ -52,9 +55,10 @@ export default async function EditLetterPage({ params }: PageProps<"/letters/[id
       context={context}
       company={company}
       companySummary={summary}
-      today={todayIso()}
+      today={date}
       price={price}
       jurisdictions={jurisdictions}
+      correction={correcting ? { version: letter.current_version, until: letter.correction_until! } : undefined}
     />
   );
 }
