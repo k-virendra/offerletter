@@ -3,6 +3,7 @@ import { randomInt } from "node:crypto";
 import { amountMinor } from "./fields";
 import { hashesMatch, payuRequestHash, payuResponseHash } from "./hash";
 import type { Verification } from "./verify";
+import { BRAND } from "@/lib/brand";
 
 // A local stand-in for PayU hosted checkout (PAYU_MODE=simulator, local Supabase only), from Askora. It checks the
 // merchant hash exactly as PayU would, posts a signed response back to surl/furl, sends PayU's server-to-server
@@ -127,7 +128,7 @@ export function simulatorComplete(txnid: string, outcome: string, credentials: {
   const inputs = Object.entries(response)
     .map(([k, v]) => `<input type="hidden" name="${escape(k)}" value="${escape(v)}">`)
     .join("");
-  return page("Returning to the merchant…", `<form method="post" action="${escape(target)}">${inputs}<main><div class="card">Returning to Offer Letter PDF… <button class="ok">Continue</button></div></main></form>`, true);
+  return page("Returning to the merchant…", `<form method="post" action="${escape(target)}">${inputs}<main><div class="card">Returning to ${BRAND.name}… <button class="ok">Continue</button></div></main></form>`, true);
 }
 
 /** verify_payment, answered from the ledger. */

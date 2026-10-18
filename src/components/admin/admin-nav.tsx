@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
-export type AdminNavItem = { href: string; label: string; count?: number; tone?: "marigold" | "danger" };
+export type AdminNavItem = { href: string; label: string; count?: number; tone?: "marigold" | "danger"; countLabel?: string };
 
 export function AdminNav({ items }: { items: AdminNavItem[] }) {
   const pathname = usePathname();
@@ -33,7 +33,7 @@ export function AdminNav({ items }: { items: AdminNavItem[] }) {
                   >
                     <span className="sr-only">(</span>
                     {item.count}
-                    <span className="sr-only">{item.tone === "danger" ? " new)" : " to review)"}</span>
+                    <span className="sr-only">{` ${item.countLabel ?? (item.tone === "danger" ? "new" : "to review")})`}</span>
                   </span>
                 ) : null}
               </Link>

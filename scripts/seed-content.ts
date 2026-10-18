@@ -3,7 +3,7 @@ import { loadContent } from "./content";
 
 // Upserts content/ into the database with the secret key. Safe to run repeatedly:
 //   * countries keep their enabled switch and styles keep their active switch (admins own those),
-//   * prices are added only when no identical row exists,
+//   * prices are added only when no identical row exists; plans only when their key is new (then admins own them),
 //   * clauses: a new section/version is inserted as a draft; an existing draft is updated; an existing clause in
 //     review or approved is never changed (edit the YAML with a new version number instead).
 // Usage: pnpm seed   (reads .env.local)
@@ -116,6 +116,17 @@ async function main() {
       added += 1;
     }
     console.log(`prices: ${added} added`);
+  }
+
+  {
+    const { data: existing, error } = await db.from("plans").select("key");
+    fail("read plans", error);
+    const fresh = content.plans.filter((plan) => !existing.some((e) => e.key === plan.key));
+    if (fresh.length) {
+      const { error: insertError } = await db.from("plans").insert(fresh.map((plan) => ({ ...plan, description: plan.description ?? null })));
+      fail("plans", insertError);
+    }
+    console.log(`plans: ${fresh.length} added`);
   }
 
   {

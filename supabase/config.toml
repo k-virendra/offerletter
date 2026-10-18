@@ -227,11 +227,11 @@ otp_expiry = 900
 # Sign-in links use the token-hash flow (/auth/confirm), so a link opened in another browser still works.
 # Mirror these templates in the hosted project's Auth > Email templates.
 [auth.email.template.magic_link]
-subject = "Your sign-in link for Offer Letter PDF"
+subject = "Your sign-in link for AI Company Wala"
 content_path = "./supabase/templates/magic-link.html"
 
 [auth.email.template.confirmation]
-subject = "Your sign-in link for Offer Letter PDF"
+subject = "Your sign-in link for AI Company Wala"
 content_path = "./supabase/templates/magic-link.html"
 
 # Uncomment to customize notification email template

@@ -4,7 +4,7 @@ import { publicEnv } from "@/lib/env";
 import type { Database } from "./database.types";
 import { resilientFetch } from "./fetch";
 
-const SIGNED_IN_AREAS = ["/dashboard", "/companies", "/letters", "/checkout", "/receipts", "/settings", "/admin"];
+const SIGNED_IN_AREAS = ["/dashboard", "/companies", "/letters", "/website", "/checkout", "/receipts", "/settings", "/admin"];
 
 function isSignedInArea(pathname: string) {
   return SIGNED_IN_AREAS.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));

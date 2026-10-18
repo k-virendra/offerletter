@@ -34,7 +34,7 @@ export default async function PaymentStatusPage({ params }: PageProps<"/letters/
       <CheckoutHeader back={{ href: "/dashboard", label: "Your letters" }} />
       <main className="mx-auto max-w-[640px] px-4 py-8 md:py-14">
         <PaymentStatus
-          letterId={id}
+          target={{ kind: "letter", letterId: id }}
           txnid={payment.txnid}
           initial={{ status: payment.status, failureReason: payment.failure_reason, ready: Boolean(first?.pdf_path) }}
           amount={shown === charged ? charged : `${shown} (charged as ${charged})`}

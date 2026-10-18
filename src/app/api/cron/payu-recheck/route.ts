@@ -1,6 +1,5 @@
-import { timingSafeEqual } from "node:crypto";
-import { serverEnv } from "@/lib/env.server";
-import { settlePayment } from "@/lib/payments/process.server";
+import { cronAuthorised } from "@/lib/cron.server";
+import { PAYMENT_SUMMARY, settlePayment } from "@/lib/payments/process.server";
 import { adminClient } from "@/lib/supabase/admin";
 
 // Every 15 minutes (vercel.json): payments that never got a final answer are asked of PayU again, confirmed ones
@@ -13,16 +12,8 @@ export const maxDuration = 300;
 const MINUTE = 60_000;
 const BATCH = 25;
 
-function authorised(request: Request): boolean {
-  const secret = serverEnv().CRON_SECRET;
-  if (!secret) return false;
-  const given = Buffer.from(request.headers.get("authorization") ?? "");
-  const expected = Buffer.from(`Bearer ${secret}`);
-  return given.length === expected.length && timingSafeEqual(given, expected);
-}
-
 export async function GET(request: Request) {
-  if (!authorised(request)) return Response.json({ error: "Unauthorised" }, { status: 401 });
+  if (!cronAuthorised(request)) return Response.json({ error: "Unauthorised" }, { status: 401 });
   const db = adminClient();
   const now = Date.now();
   const iso = (ms: number) => new Date(ms).toISOString();
@@ -31,7 +22,7 @@ export async function GET(request: Request) {
   const [open, unfinished] = await Promise.all([
     db
       .from("payments")
-      .select("id, txnid, letter_id, status, amount_minor, failure_reason")
+      .select(PAYMENT_SUMMARY)
       .in("status", ["initiated", "pending"])
       .lt("created_at", iso(now - 15 * MINUTE))
       .gt("created_at", iso(now - 3 * 24 * 60 * MINUTE))
@@ -39,7 +30,7 @@ export async function GET(request: Request) {
       .limit(BATCH),
     db
       .from("payments")
-      .select("id, txnid, letter_id, status, amount_minor, failure_reason")
+      .select(PAYMENT_SUMMARY)
       .eq("status", "success")
       .is("receipt_sent_at", null)
       .lt("verified_at", iso(now - 5 * MINUTE))

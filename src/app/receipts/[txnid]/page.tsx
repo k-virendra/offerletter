@@ -27,7 +27,9 @@ export default async function ReceiptPage({ params }: PageProps<"/receipts/[txni
   const supabase = await createClient();
   const { data: payment } = await supabase
     .from("payments")
-    .select("txnid, status, amount_minor, currency, display_amount_minor, display_currency, billing, raw_responses, verified_at, refunded_at, letter_id, letters(name), companies(legal_name)")
+    .select(
+      "txnid, kind, status, amount_minor, currency, display_amount_minor, display_currency, billing, raw_responses, verified_at, refunded_at, letter_id, letters(name), companies(legal_name), invoices!payments_invoice_id_fkey(number, description, subscription_id)",
+    )
     .eq("txnid", txnid)
     .eq("user_id", user.id)
     .in("status", ["success", "refunded"])
@@ -48,7 +50,11 @@ export default async function ReceiptPage({ params }: PageProps<"/receipts/[txni
     <div className="min-h-dvh bg-canvas print:bg-white">
       <main className="mx-auto max-w-[720px] px-4 py-8 md:py-12 print:p-0">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3 print:hidden">
-          {payment.letter_id ? (
+          {payment.kind === "invoice" && payment.invoices ? (
+            <Link href={`/website/${payment.invoices.subscription_id}`} className="text-sm font-semibold text-evergreen-700 underline underline-offset-2">
+              Back to your website page
+            </Link>
+          ) : payment.letter_id ? (
             <Link href={`/letters/${payment.letter_id}`} className="text-sm font-semibold text-evergreen-700 underline underline-offset-2">
               Back to the letter
             </Link>
@@ -108,9 +114,11 @@ export default async function ReceiptPage({ params }: PageProps<"/receipts/[txni
             <tbody>
               <tr className="border-t border-line-soft">
                 <td className="py-3 pr-4">
-                  Offer letter: {payment.letters?.name ?? "deleted letter"}
+                  {payment.kind === "invoice" ? (payment.invoices?.description ?? "Business website") : `Offer letter: ${payment.letters?.name ?? "deleted letter"}`}
                   {payment.companies?.legal_name ? <span className="block text-ink-2">{payment.companies.legal_name}</span> : null}
-                  <span className="block text-[13px] text-muted">Final PDF and free corrections for 7 days</span>
+                  <span className="block text-[13px] text-muted">
+                    {payment.kind === "invoice" ? `Invoice ${payment.invoices?.number ?? ""}` : "Final PDF and free corrections for 7 days"}
+                  </span>
                 </td>
                 <td className="py-3 text-right align-top tabular-nums">{price}</td>
               </tr>

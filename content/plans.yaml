@@ -1,0 +1,15 @@
+# Business website plans. Seeding adds a plan the first time and then leaves it alone: prices are changed in the
+# admin panel (Admin → Prices), and invoices keep the amount they were issued with.
+- key: business_website
+  name: Business website
+  description: Your website, your own domain and a business email address, set up and looked after by our team.
+  currency: INR
+  onboarding_minor: 499900
+  monthly_minor: 499900
+  domain_allowance_minor: 149900
+  features:
+    - A .com, .in or similar domain in your name, first year included (up to ₹1,499)
+    - A website for your business, built by our team
+    - One business email address at your domain
+    - Hosting, updates and support
+  sort_order: 10

@@ -7,6 +7,7 @@ import { IssueError, issueLetterVersion } from "@/lib/pdf/issue.server";
 import { canonicalJson, type IssuedCompany, type IssuedSnapshot } from "@/lib/pdf/snapshot";
 import { takeRateLimit } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
+import { BRAND } from "@/lib/brand";
 
 // "Issue corrected version": a free correction of a paid letter, inside its correction window. The new version is
 // built from the letter as saved now, with the wording and date of the version it corrects.
@@ -19,7 +20,7 @@ const fail = (status: number, error: string) => Response.json({ error }, { statu
 export async function POST(request: Request, { params }: RouteContext<"/api/letters/[id]/corrections">) {
   const { id } = await params;
   // Only from this site's own pages (the session cookie alone would let another site trigger it).
-  if (request.headers.get("origin") !== new URL(request.url).origin) return fail(403, "Open the letter in Offer Letter PDF to correct it.");
+  if (request.headers.get("origin") !== new URL(request.url).origin) return fail(403, `Open the letter in ${BRAND.name} to correct it.`);
   const user = await getUser();
   if (!user) return fail(401, "Your session has ended. Sign in again to issue the correction.");
   if (!z.uuid().safeParse(id).success) return fail(404, "We couldn’t find this letter.");

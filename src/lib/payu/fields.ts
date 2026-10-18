@@ -45,7 +45,8 @@ export type CheckoutFieldsInput = {
   phone?: string;
   /** Where PayU posts the customer back after paying (both outcomes). */
   returnUrl: string;
-  letterId: string;
+  /** What is paid for (a letter or an invoice), sent as udf1 and covered by the hash. */
+  reference: string;
   userId: string;
 };
 
@@ -57,7 +58,7 @@ export function buildPayuFields(input: CheckoutFieldsInput): Record<string, stri
     productinfo: payuSafe(input.productinfo, 100),
     firstname: payuSafe(input.firstname, 60),
     email: input.email.trim(),
-    udf1: input.letterId,
+    udf1: input.reference,
     udf2: input.userId,
   };
   return {

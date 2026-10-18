@@ -12,14 +12,17 @@ export type PaymentView = { status: "initiated" | "pending" | "success" | "faile
 
 const POLL_SECONDS = 12;
 
+/** What the payment was for: an offer letter, or an invoice for a business website. */
+export type PaymentTarget = { kind: "letter"; letterId: string } | { kind: "invoice"; subscriptionId: string; invoiceId: string };
+
 export function PaymentStatus({
-  letterId,
+  target,
   txnid,
   initial,
   amount,
   startedAt,
 }: {
-  letterId: string;
+  target: PaymentTarget;
   txnid: string;
   initial: PaymentView;
   amount: string;
@@ -81,22 +84,37 @@ export function PaymentStatus({
     return (
       <Card tone="success" icon={<CircleCheck aria-hidden className="size-7" />}>
         <h1 ref={headingRef} tabIndex={-1} className="font-display text-[28px] leading-tight font-medium outline-none">
-          {view.status === "refunded" ? "This payment was refunded" : view.ready ? "Payment received. Your letter is ready." : "Payment received. Preparing your letter…"}
+          {view.status === "refunded"
+            ? "This payment was refunded"
+            : target.kind === "invoice"
+              ? "Payment received. Thank you!"
+              : view.ready
+                ? "Payment received. Your letter is ready."
+                : "Payment received. Preparing your letter…"}
         </h1>
         {view.status === "refunded" ? (
-          <p className="mt-2 text-ink-2">The letter stays in your account, but it can’t be corrected any more.</p>
+          <p className="mt-2 text-ink-2">{target.kind === "letter" ? "The letter stays in your account, but it can’t be corrected any more." : "The refund goes back to the card or account you paid with."}</p>
+        ) : target.kind === "invoice" ? (
+          <>
+            <p className="mt-2 text-ink-2">We’ve emailed your receipt. You can follow your website’s progress and see your invoices on its page.</p>
+            <div className="mt-5 flex flex-wrap gap-2.5">
+              <Button asChild size="lg">
+                <Link href={`/website/${target.subscriptionId}`}>Open your website page</Link>
+              </Button>
+            </div>
+          </>
         ) : view.ready ? (
           <>
             <p className="mt-2 text-ink-2">We’ve emailed your receipt. You can download the PDF now or any time from the letter’s page.</p>
             <div className="mt-5 flex flex-wrap gap-2.5">
               <Button asChild size="lg">
-                <a href={`/api/letters/${letterId}/versions/1/pdf`}>
+                <a href={`/api/letters/${target.letterId}/versions/1/pdf`}>
                   <Download aria-hidden />
                   Download PDF
                 </a>
               </Button>
               <Button asChild size="lg" variant="secondary">
-                <Link href={`/letters/${letterId}`}>Open the letter</Link>
+                <Link href={`/letters/${target.letterId}`}>Open the letter</Link>
               </Button>
             </div>
           </>
@@ -122,13 +140,18 @@ export function PaymentStatus({
         <h1 ref={headingRef} tabIndex={-1} className="font-display text-[28px] leading-tight font-medium outline-none">
           The payment didn’t go through
         </h1>
-        <p className="mt-2 text-ink-2">{view.failureReason ?? "PayU couldn’t complete the payment."} Your letter is saved as a draft, so you can try again.</p>
+        <p className="mt-2 text-ink-2">
+          {view.failureReason ?? "PayU couldn’t complete the payment."}{" "}
+          {target.kind === "letter" ? "Your letter is saved as a draft, so you can try again." : "Nothing was charged for it, and you can try again."}
+        </p>
         <div className="mt-5 flex flex-wrap gap-2.5">
           <Button asChild size="lg">
-            <Link href={`/letters/${letterId}/checkout`}>Try again</Link>
+            <Link href={target.kind === "letter" ? `/letters/${target.letterId}/checkout` : `/website/invoices/${target.invoiceId}/pay`}>Try again</Link>
           </Button>
           <Button asChild size="lg" variant="secondary">
-            <Link href={`/letters/${letterId}/edit`}>Back to the letter</Link>
+            <Link href={target.kind === "letter" ? `/letters/${target.letterId}/edit` : `/website/${target.subscriptionId}`}>
+              {target.kind === "letter" ? "Back to the letter" : "Back to your website page"}
+            </Link>
           </Button>
         </div>
         {reference}

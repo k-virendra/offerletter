@@ -3,7 +3,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
-import { CheckoutForm } from "@/components/checkout/checkout-form";
+import { startCheckout } from "@/app/(editor)/letters/[id]/checkout/actions";
+import { CheckoutForm, PolicyLinks } from "@/components/checkout/checkout-form";
 import { CheckoutHeader } from "@/components/checkout/checkout-header";
 import { LetterThumbnail } from "@/components/letter/letter-view";
 import { getProfile, requireUser } from "@/lib/auth";
@@ -80,8 +81,13 @@ export default async function CheckoutPage({ params }: PageProps<"/letters/[id]/
             </p>
           ) : null}
           <CheckoutForm
-            letterId={id}
-            companyName={row.legal_name}
+            submit={startCheckout.bind(null, id)}
+            pendingPath={`/letters/${id}/checkout/`}
+            agreement={
+              <>
+                I’m authorised to issue this letter on behalf of <strong className="font-semibold">{row.legal_name}</strong>, and I agree to the <PolicyLinks />.
+              </>
+            }
             price={price}
             countries={countryOptions()}
             defaults={{

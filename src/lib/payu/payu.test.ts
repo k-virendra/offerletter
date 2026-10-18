@@ -125,7 +125,7 @@ describe("checkout fields", () => {
       email: " anna@example.de ",
       phone: "+49 (89) 1234-5678",
       returnUrl: "https://offerletter.example/api/payu/return",
-      letterId: "letter-1",
+      reference: "letter-1",
       userId: "user-1",
     });
     expect(fields).toMatchObject({

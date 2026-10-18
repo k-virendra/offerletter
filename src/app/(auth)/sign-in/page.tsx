@@ -6,6 +6,7 @@ import { publicEnv } from "@/lib/env";
 import { displayPriceLabel } from "@/lib/payments/prices.server";
 import { safeNext } from "@/lib/safe-next";
 import { SignInForm } from "./sign-in-form";
+import { BRAND } from "@/lib/brand";
 
 export const metadata: Metadata = { title: "Sign in" };
 
@@ -61,14 +62,14 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
         </nav>
       </main>
 
-      <aside aria-label="About Offer Letter PDF" className="flex min-w-0 flex-[1_1_520px] items-center justify-center bg-desk px-10 py-14">
+      <aside aria-label={`About ${BRAND.name}`} className="flex min-w-0 flex-[1_1_520px] items-center justify-center bg-desk px-10 py-14">
         <div className="flex max-w-[480px] flex-col gap-7">
-          <h2 className="font-display text-[34px] leading-[1.15] font-medium">Enter your company once. Every letter after that starts filled in.</h2>
+          <h2 className="font-display text-[34px] leading-[1.15] font-medium">Your business online, done for you.</h2>
           <ul className="flex flex-col gap-3 text-base">
             {[
-              "Save up to 5 companies with logo, brand colour and signatory",
-              "Wording for 8 countries, with state and province rules where they matter",
-              `Pay${price ? ` ${price}` : ""} only when your letter is ready to download`,
+              "A website on your own domain, built and looked after by our team",
+              "A business email address at your domain",
+              `Offer letters for 8 countries${price ? `, ${price} each when ready to download` : ""}`,
             ].map((item) => (
               <li key={item} className="flex gap-2.5">
                 <Check aria-hidden className="mt-0.5 size-5 shrink-0 text-evergreen-600" strokeWidth={2.4} />

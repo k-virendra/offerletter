@@ -1,4 +1,5 @@
 import type { Email } from "./send.server";
+import { BRAND } from "@/lib/brand";
 
 // The receipt email sent once a payment is confirmed. Plain, with the reference people quote to support, and
 // links back to the letter and the printable receipt.
@@ -41,7 +42,7 @@ export function receiptEmail(details: ReceiptDetails): Email {
     "",
     `You can correct mistakes for free until ${details.correctionsUntil}.`,
     "",
-    "Offer Letter PDF",
+    BRAND.name,
   ].join("\n");
   const html = `<!doctype html><html lang="en"><body style="margin:0;background:#f7f7f4;font-family:-apple-system,'Segoe UI',Arial,sans-serif;color:#14181f">
 <div style="max-width:520px;margin:0 auto;padding:28px 20px">
@@ -53,7 +54,7 @@ ${rows.map(([label, value]) => `<tr><td style="padding:10px 14px;font-size:13px;
 <p style="margin:24px 0 12px"><a href="${escape(details.letterUrl)}" style="display:inline-block;background:#0f6e5f;color:#fff;text-decoration:none;font-weight:600;padding:12px 18px;border-radius:10px">Open your letter</a></p>
 <p style="font-size:14px;margin:0 0 20px"><a href="${escape(details.receiptUrl)}" style="color:#0a5246">View or print the receipt</a></p>
 <p style="font-size:13px;color:#5b6472;margin:0">You can correct mistakes for free until ${escape(details.correctionsUntil)}.</p>
-<p style="font-size:13px;color:#5b6472;margin:16px 0 0">Offer Letter PDF</p>
+<p style="font-size:13px;color:#5b6472;margin:16px 0 0">${BRAND.name}</p>
 </div></body></html>`;
   return { to: details.to, subject: `Your receipt for ${details.letterName} (${details.reference})`, html, text };
 }

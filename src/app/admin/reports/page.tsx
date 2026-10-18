@@ -6,6 +6,7 @@ import { AdminCard, AdminHeader, EmptyState, Pill } from "@/components/admin/ui"
 import { shortDateTime } from "@/lib/admin/queries.server";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
+import { BRAND } from "@/lib/brand";
 
 export const metadata: Metadata = { title: "Misuse reports" };
 
@@ -29,7 +30,7 @@ export default async function AdminReportsPage({ searchParams }: PageProps<"/adm
 
   return (
     <>
-      <AdminHeader title="Misuse reports" description="Reports from candidates and companies about letters made with Offer Letter PDF, such as a company asking candidates for money." />
+      <AdminHeader title="Misuse reports" description={`Reports from candidates and companies about letters made with ${BRAND.name}, such as a company asking candidates for money.`} />
       <nav aria-label="Filter reports" className="mb-4 flex gap-2">
         {FILTERS.map((f) => (
           <Link

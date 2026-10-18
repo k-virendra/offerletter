@@ -132,6 +132,25 @@ export async function periodMetrics(period: Period): Promise<Metrics> {
   };
 }
 
+/** Website orders at a glance: waiting to be set up, live, overdue, and domains to renew soon. */
+export async function websiteCounts(today: string) {
+  const supabase = await createClient();
+  const soon = new Date(`${today}T00:00:00Z`);
+  soon.setUTCDate(soon.getUTCDate() + 30);
+  const count = (status: "onboarding" | "active" | "past_due") => supabase.from("subscriptions").select("id", { count: "exact", head: true }).eq("status", status);
+  const [setup, active, pastDue, expiring] = await Promise.all([
+    count("onboarding"),
+    count("active"),
+    count("past_due"),
+    supabase
+      .from("subscriptions")
+      .select("id", { count: "exact", head: true })
+      .not("status", "eq", "cancelled")
+      .lte("domain_expires_on", soon.toISOString().slice(0, 10)),
+  ]);
+  return { setup: setup.count ?? 0, active: active.count ?? 0, pastDue: pastDue.count ?? 0, expiring: expiring.count ?? 0 };
+}
+
 /** Minutes until the next quarter hour, when the payment recheck runs (vercel.json). */
 export function minutesToNextRecheck(now = new Date()): number {
   return 15 - (now.getUTCMinutes() % 15);

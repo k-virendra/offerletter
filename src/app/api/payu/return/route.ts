@@ -18,6 +18,7 @@ export async function POST(request: Request) {
     // The status page checks again.
     console.error("PayU return failed", error);
   }
-  const target = payment?.letter_id ? `/letters/${payment.letter_id}/checkout/${payment.txnid}` : "/dashboard";
+  const target =
+    payment?.kind === "invoice" ? `/website/payments/${payment.txnid}` : payment?.letter_id ? `/letters/${payment.letter_id}/checkout/${payment.txnid}` : "/dashboard";
   return new Response(null, { status: 303, headers: { location: `${appUrl()}${target}`, "cache-control": "no-store" } });
 }

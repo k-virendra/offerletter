@@ -3,7 +3,7 @@
 import { Ban, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useId, useState, useTransition } from "react";
-import { addPrice, liftSuspension, recordRefund, saveCountryNotes, saveStyle, setCompanyLimit, suspendCompany, updateReport } from "@/app/admin/actions";
+import { addPrice, liftSuspension, recordRefund, saveCountryNotes, savePlan, saveStyle, setCompanyLimit, suspendCompany, updateReport } from "@/app/admin/actions";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import { toast } from "@/components/ui/toast";
@@ -11,7 +11,7 @@ import type { AdminResult } from "@/lib/admin/auth";
 
 // The forms on the admin pages. Each shows the server's answer as a toast (and inline when it failed).
 
-function useSubmit() {
+export function useSubmit() {
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -28,7 +28,7 @@ function useSubmit() {
   return { pending, error, submit };
 }
 
-function FormError({ error }: { error: string | null }) {
+export function FormError({ error }: { error: string | null }) {
   return error ? (
     <p role="alert" className="text-sm text-danger">
       {error}
@@ -36,7 +36,7 @@ function FormError({ error }: { error: string | null }) {
   ) : null;
 }
 
-function Submit({ pending, children, variant = "primary" }: { pending: boolean; children: React.ReactNode; variant?: "primary" | "secondary" | "danger" }) {
+export function Submit({ pending, children, variant = "primary" }: { pending: boolean; children: React.ReactNode; variant?: "primary" | "secondary" | "danger" }) {
   return (
     <Button type="submit" variant={variant} disabled={pending}>
       {pending ? <Loader2 aria-hidden className="animate-spin motion-reduce:animate-none" /> : null}
@@ -304,6 +304,37 @@ export function RefundForm({ txnid, amount }: { txnid: string; amount: string })
         <Submit pending={pending} variant="danger">
           Record refund
         </Submit>
+      </div>
+    </form>
+  );
+}
+
+export function PlanForm({ planId, onboarding, monthly, allowance }: { planId: string; onboarding: string; monthly: string; allowance: string }) {
+  const id = useId();
+  const [values, setValues] = useState({ onboarding, monthly, allowance });
+  const { pending, error, submit } = useSubmit();
+  return (
+    <form
+      className="grid gap-3 sm:grid-cols-3"
+      onSubmit={(event) => {
+        event.preventDefault();
+        submit(() => savePlan(planId, values));
+      }}
+    >
+      <Field id={`${id}-onboarding`} label="Onboarding (₹)" required help="Paid at sign-up.">
+        <Input id={`${id}-onboarding`} inputMode="decimal" value={values.onboarding} onChange={(e) => setValues((v) => ({ ...v, onboarding: e.target.value }))} />
+      </Field>
+      <Field id={`${id}-monthly`} label="Monthly (₹)" required help="Due on the 1st.">
+        <Input id={`${id}-monthly`} inputMode="decimal" value={values.monthly} onChange={(e) => setValues((v) => ({ ...v, monthly: e.target.value }))} />
+      </Field>
+      <Field id={`${id}-allowance`} label="Domain up to (₹)" required help="First year included.">
+        <Input id={`${id}-allowance`} inputMode="decimal" value={values.allowance} onChange={(e) => setValues((v) => ({ ...v, allowance: e.target.value }))} />
+      </Field>
+      <div className="flex flex-col gap-2 sm:col-span-3">
+        <FormError error={error} />
+        <div>
+          <Submit pending={pending}>Save plan</Submit>
+        </div>
       </div>
     </form>
   );

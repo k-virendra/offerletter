@@ -5,16 +5,26 @@ import { isGenuineResponse, verifyPayment } from "@/lib/payu/gateway.server";
 import type { Verification } from "@/lib/payu/verify";
 import { adminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/database.types";
-import { completePaidLetter } from "./complete.server";
+import { fulfilPayment } from "./fulfil.server";
 
 // Turning what PayU tells us into a payment status. Responses posted to us (the browser return and the webhook)
 // only start the process: they must carry PayU's hash for our key, and even then the status is taken from
 // verify_payment, asked server to server, and the amount must match what was charged.
 
 export type PaymentStatus = Database["public"]["Enums"]["payment_status"];
-export type PaymentSummary = { id: string; txnid: string; letter_id: string | null; status: PaymentStatus; amount_minor: number; failure_reason: string | null };
+export type PaymentSummary = {
+  id: string;
+  txnid: string;
+  kind: "letter" | "invoice";
+  letter_id: string | null;
+  invoice_id: string | null;
+  status: PaymentStatus;
+  amount_minor: number;
+  failure_reason: string | null;
+};
 
-const SUMMARY = "id, txnid, letter_id, status, amount_minor, failure_reason";
+export const PAYMENT_SUMMARY = "id, txnid, kind, letter_id, invoice_id, status, amount_minor, failure_reason";
+const SUMMARY = PAYMENT_SUMMARY;
 const TXNID = /^[A-Za-z0-9_-]{8,40}$/;
 
 export async function findPayment(txnid: string): Promise<PaymentSummary | null> {
@@ -113,8 +123,8 @@ export async function settlePayment(payment: PaymentSummary): Promise<PaymentSum
 /** Completion errors (a PDF that failed to render, say) leave the payment confirmed; the recheck job retries. */
 async function completeSafely(payment: PaymentSummary) {
   try {
-    await completePaidLetter(payment.id);
+    await fulfilPayment(payment);
   } catch (error) {
-    console.error("completing a paid letter failed", payment.txnid, error);
+    console.error("completing a paid payment failed", payment.txnid, error);
   }
 }

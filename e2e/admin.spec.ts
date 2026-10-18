@@ -155,7 +155,7 @@ test.describe("admin", () => {
     await toast(page, /is suspended\. We emailed the owner\./);
     const { data: suspended } = await testAdmin().from("companies").select("suspended_at, suspended_reason").eq("id", company!.id).single();
     expect(suspended!.suspended_at).not.toBeNull();
-    expect((await latestEmailTo(owner)).Subject).toBe(`${name} is suspended on Offer Letter PDF`);
+    expect((await latestEmailTo(owner)).Subject).toBe(`${name} is suspended on AI Company Wala`);
     await expect(page.getByRole("row", { name: new RegExp(name) }).getByText("Suspended")).toBeVisible();
 
     await page.getByRole("button", { name: "Lift the suspension" }).click();

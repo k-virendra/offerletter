@@ -1,4 +1,5 @@
 import { PDFDocument } from "pdf-lib";
+import { BRAND } from "@/lib/brand";
 
 export type PdfMetadata = { title: string; author: string; subject: string; keywords?: string[] };
 
@@ -9,8 +10,8 @@ export async function withMetadata(pdf: Uint8Array, metadata: PdfMetadata, now =
   document.setAuthor(metadata.author);
   document.setSubject(metadata.subject);
   if (metadata.keywords?.length) document.setKeywords(metadata.keywords);
-  document.setCreator("Offer Letter PDF");
-  document.setProducer("Offer Letter PDF (Chromium)");
+  document.setCreator(BRAND.name);
+  document.setProducer(`${BRAND.name} (Chromium)`);
   document.setCreationDate(now);
   document.setModificationDate(now);
   document.setLanguage("en");

@@ -17,8 +17,10 @@ const schema = z.object({
   /** Vercel sends it as "Authorization: Bearer <CRON_SECRET>" to scheduled jobs. */
   CRON_SECRET: z.string().min(16).optional(),
   RESEND_API_KEY: z.string().min(1).optional(),
-  /** e.g. "Offer Letter PDF <receipts@your-domain>"; the domain must be verified in Resend. */
+  /** e.g. "AI Company Wala <billing@aicompanywala.com>"; the domain must be verified in Resend. */
   EMAIL_FROM: z.string().min(3).optional(),
+  /** Where the team is told about new website orders. */
+  ADMIN_NOTIFY_EMAIL: z.email().optional(),
   /** The seller printed on receipts: legal name, address, tax number. "|" starts a new line. */
   RECEIPT_SELLER: z.string().max(500).optional(),
 });
@@ -39,6 +41,7 @@ export function serverEnv() {
     RESEND_API_KEY: process.env.RESEND_API_KEY || undefined,
     EMAIL_FROM: process.env.EMAIL_FROM || undefined,
     RECEIPT_SELLER: process.env.RECEIPT_SELLER || undefined,
+    ADMIN_NOTIFY_EMAIL: process.env.ADMIN_NOTIFY_EMAIL || undefined,
   });
   return cached;
 }

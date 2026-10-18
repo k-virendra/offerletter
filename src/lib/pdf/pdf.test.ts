@@ -57,7 +57,7 @@ describe("PDF metadata", () => {
     expect(read.getTitle()).toBe("Offer of employment – Lena Hoffmann");
     expect(read.getAuthor()).toBe("Example Engineering GmbH");
     expect(read.getSubject()).toBe("Offer of employment: Senior Backend Engineer");
-    expect(read.getCreator()).toBe("Offer Letter PDF");
+    expect(read.getCreator()).toBe("AI Company Wala");
     expect(read.catalog.lookup(PDFName.of("Lang"), PDFString).decodeText()).toBe("en");
   });
 });

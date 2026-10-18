@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, FileText, Settings, ShieldCheck } from "lucide-react";
+import { Building2, FileText, Globe, Settings, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -9,6 +9,7 @@ export function SidebarNav({ companyUsage, isAdmin }: { companyUsage: string; is
   const pathname = usePathname();
   const items = [
     { href: "/dashboard", label: "Letters", icon: FileText, match: ["/dashboard", "/letters"] },
+    { href: "/website", label: "Website", icon: Globe, match: ["/website"] },
     { href: "/companies", label: "My companies", icon: Building2, match: ["/companies"], meta: companyUsage },
     { href: "/settings", label: "Settings", icon: Settings, match: ["/settings"] },
     ...(isAdmin ? [{ href: "/admin", label: "Admin", icon: ShieldCheck, match: ["/admin"] }] : []),

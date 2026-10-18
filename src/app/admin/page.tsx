@@ -5,7 +5,8 @@ import { ToggleAction, VerifyPaymentButton } from "@/components/admin/controls";
 import { CountryStatus } from "@/components/admin/country-status";
 import { PeriodSelect } from "@/components/admin/period-select";
 import { AdminCard, AdminHeader, AdminTable, EmptyState, Metric, Pill, td, th } from "@/components/admin/ui";
-import { age, countryReadiness, minutesToNextRecheck, monthPeriod, PAYMENT_LABELS, periodMetrics, recentMonths, shortDateTime } from "@/lib/admin/queries.server";
+import { age, countryReadiness, minutesToNextRecheck, monthPeriod, PAYMENT_LABELS, periodMetrics, recentMonths, shortDateTime, websiteCounts } from "@/lib/admin/queries.server";
+import { todayIso } from "@/lib/template/format";
 import { formatMoney } from "@/lib/payments/prices.server";
 import { createClient } from "@/lib/supabase/server";
 
@@ -17,12 +18,13 @@ export default async function AdminOverviewPage({ searchParams }: PageProps<"/ad
   const { period: periodKey } = await searchParams;
   const period = monthPeriod(typeof periodKey === "string" ? periodKey : undefined);
   const supabase = await createClient();
-  const [metrics, countries, reports, payments, prices] = await Promise.all([
+  const [metrics, countries, reports, payments, prices, websites] = await Promise.all([
     periodMetrics(period),
     countryReadiness(),
     supabase.from("abuse_reports").select("id, company_name, description, status, created_at, updated_at, profiles(email)").order("created_at", { ascending: false }).limit(3),
     supabase.from("payments").select("txnid, status, amount_minor, currency, created_at, failure_reason").order("created_at", { ascending: false }).limit(5),
     supabase.from("prices").select("id, purpose, currency, amount_minor, active, notes").order("active", { ascending: false }).order("created_at", { ascending: false }).limit(4),
+    websiteCounts(todayIso()),
   ]);
   const change = metrics.lettersPaidChange;
 
@@ -30,6 +32,21 @@ export default async function AdminOverviewPage({ searchParams }: PageProps<"/ad
     <>
       <AdminHeader title="Overview" actions={<PeriodSelect value={period.key} options={recentMonths().map((p) => ({ key: p.key, label: p.label }))} />} />
 
+      <h2 className="mb-2 text-sm font-semibold text-ink-2">Business websites</h2>
+      <div className="mb-6 grid grid-cols-2 gap-4 xl:grid-cols-4">
+        <Link href="/admin/websites?status=setup" className="no-underline">
+          <Metric label="To set up" value={websites.setup} note="Paid, waiting for the team" noteTone={websites.setup ? "info" : "muted"} />
+        </Link>
+        <Link href="/admin/websites?status=active" className="no-underline">
+          <Metric label="Active" value={websites.active} />
+        </Link>
+        <Link href="/admin/websites?status=past_due" className="no-underline">
+          <Metric label="Past due" value={websites.pastDue} noteTone="danger" note={websites.pastDue ? "Payment overdue a week or more" : "None overdue"} />
+        </Link>
+        <Metric label="Domains to renew" value={websites.expiring} note="Expiring within 30 days" noteTone={websites.expiring ? "danger" : "muted"} />
+      </div>
+
+      <h2 className="mb-2 text-sm font-semibold text-ink-2">Offer letters and payments</h2>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Metric
           label="Letters paid"

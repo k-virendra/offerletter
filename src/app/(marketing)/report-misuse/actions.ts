@@ -4,7 +4,7 @@ import { z } from "zod";
 import { clientKey, takeRateLimit } from "@/lib/rate-limit";
 import { adminClient } from "@/lib/supabase/admin";
 
-// Anyone can report a letter made with Offer Letter PDF (a candidate asked for money, a company that never sent
+// Anyone can report a letter made with AI Company Wala (a candidate asked for money, a company that never sent
 // it). Reports go straight to the admin panel; the reporter needs no account.
 
 const reportSchema = z.object({

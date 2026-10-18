@@ -19,6 +19,9 @@ export const billingSchema = z.object({
 export type Billing = z.output<typeof billingSchema>;
 export type BillingErrors = Partial<Record<keyof Billing, string>>;
 
+/** What a "Pay" server action answers: the signed form to post to PayU, or why not. */
+export type CheckoutResult = { ok: true; action: string; fields: Record<string, string> } | { ok: false; message: string; errors?: BillingErrors; pendingTxnid?: string };
+
 /** What a payment row keeps (the authorisation is recorded with its time). */
 export function billingRecord(billing: Billing, now = new Date()) {
   const details: Partial<Billing> = { ...billing };

@@ -2,6 +2,7 @@ import { ArrowLeft, Lock } from "lucide-react";
 import Link from "next/link";
 import { LogoMark, Wordmark } from "@/components/logo";
 import { Button } from "@/components/ui/button";
+import { BRAND } from "@/lib/brand";
 
 /** The slim top bar of checkout and payment status pages. */
 export function CheckoutHeader({ back }: { back?: { href: string; label: string } }) {
@@ -15,7 +16,7 @@ export function CheckoutHeader({ back }: { back?: { href: string; label: string 
           </Link>
         </Button>
       ) : null}
-      <Link href="/dashboard" aria-label="Offer Letter PDF, your letters" className="mr-auto rounded-md">
+      <Link href="/dashboard" aria-label={`${BRAND.name}, back to the app`} className="mr-auto rounded-md">
         <LogoMark className="sm:hidden" />
         <Wordmark className="max-sm:hidden" />
       </Link>

@@ -3,10 +3,9 @@
 import { z } from "zod";
 import { getUser } from "@/lib/auth";
 import { blockingProblems } from "@/lib/letter/fields";
-import { billingErrors, billingRecord, billingSchema, type BillingErrors } from "@/lib/payments/billing";
+import { billingErrors, billingSchema, type CheckoutResult } from "@/lib/payments/billing";
 import { activePrices } from "@/lib/payments/prices.server";
-import { buildPayuFields, newTxnid } from "@/lib/payu/fields";
-import { appUrl, payuConfig } from "@/lib/payu/gateway.server";
+import { startPayment } from "@/lib/payments/start.server";
 import { snapshotDraft } from "@/lib/pdf/inputs.server";
 import { contentHash } from "@/lib/pdf/snapshot";
 import { takeRateLimit } from "@/lib/rate-limit";
@@ -14,9 +13,7 @@ import { adminClient } from "@/lib/supabase/admin";
 import type { Json } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
 
-export type StartCheckoutResult =
-  | { ok: true; action: string; fields: Record<string, string> }
-  | { ok: false; message: string; errors?: BillingErrors; pendingTxnid?: string };
+export type StartCheckoutResult = CheckoutResult;
 
 /**
  * "Pay": checks everything again on the server, freezes the letter as it is now, records the payment with the
@@ -52,49 +49,19 @@ export async function startCheckout(letterId: string, input: Record<string, unkn
     return { ok: false, message: "Some details in the letter are missing or need a fix. Go back to the letter to finish them." };
   }
 
-  let config;
-  try {
-    config = payuConfig();
-  } catch (error) {
-    console.error("PayU isn't configured", error);
-    return { ok: false, message: "Payments aren’t available right now. Try again later." };
-  }
   const prices = await activePrices();
-
-  // An earlier checkout for this letter that never came back from PayU is closed: this one replaces it.
-  await admin.from("payments").update({ status: "failed", failure_reason: "Replaced by a newer checkout." }).eq("letter_id", letterId).eq("status", "initiated");
-
-  const txnid = newTxnid();
-  const { error } = await admin.from("payments").insert({
-    letter_id: letterId,
-    user_id: user.id,
-    company_id: letter.company_id,
-    txnid,
-    amount_minor: prices.charge.amountMinor,
-    currency: prices.charge.currency,
-    display_amount_minor: prices.display.amountMinor,
-    display_currency: prices.display.currency,
-    billing: billingRecord(parsed.data),
-    letter_snapshot: frozen.snapshot as unknown as Json,
-    company_snapshot: frozen.company as unknown as Json,
-    content_hash: contentHash(frozen.snapshot, frozen.company),
-  });
-  if (error) {
-    console.error("startCheckout couldn't record the payment", error.code, error.message);
-    return { ok: false, message: "We couldn’t start the payment. Try again in a moment." };
-  }
-
-  const fields = buildPayuFields({
-    key: config.key,
-    salt: config.salt,
-    txnid,
-    amountMinor: prices.charge.amountMinor,
-    productinfo: "Offer letter",
-    firstname: parsed.data.fullName,
-    email: parsed.data.email,
-    returnUrl: `${appUrl()}/api/payu/return`,
-    letterId,
+  const started = await startPayment({
+    kind: "letter",
     userId: user.id,
+    companyId: letter.company_id,
+    billing: parsed.data,
+    charge: prices.charge,
+    display: prices.display,
+    productinfo: "Offer letter",
+    letterId,
+    snapshot: frozen.snapshot as unknown as Json,
+    companySnapshot: frozen.company as unknown as Json,
+    contentHash: contentHash(frozen.snapshot, frozen.company),
   });
-  return { ok: true, action: config.checkoutUrl, fields };
+  return started.ok ? { ok: true, action: started.action, fields: started.fields } : started;
 }

@@ -1,7 +1,7 @@
 import "server-only";
 import { adminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import { findPayment, settlePayment, type PaymentStatus } from "./process.server";
+import { findPayment, settlePayment, type PaymentStatus, type PaymentSummary } from "./process.server";
 
 // What the payment status page shows, for the signed-in payer only.
 
@@ -19,7 +19,17 @@ export async function checkOwnPayment(userId: string, txnid: string): Promise<Pa
   const payment = await findPayment(txnid);
   if (!payment) return UNKNOWN;
   const settled = await settlePayment(payment);
-  return { status: settled.status, failureReason: settled.failure_reason, ready: settled.status === "success" && settled.letter_id ? await firstVersionReady(settled.letter_id) : false };
+  return { status: settled.status, failureReason: settled.failure_reason, ready: settled.status === "success" ? await fulfilled(settled) : false };
+}
+
+/** A confirmed payment is "ready" once what it paid for is done: the letter's PDF, or the invoice settled. */
+async function fulfilled(payment: PaymentSummary): Promise<boolean> {
+  if (payment.kind === "invoice") {
+    if (!payment.invoice_id) return false;
+    const { data } = await adminClient().from("invoices").select("status").eq("id", payment.invoice_id).maybeSingle();
+    return data?.status === "paid";
+  }
+  return payment.letter_id ? firstVersionReady(payment.letter_id) : false;
 }
 
 export async function firstVersionReady(letterId: string): Promise<boolean> {

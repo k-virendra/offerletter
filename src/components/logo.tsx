@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { BRAND } from "@/lib/brand";
 
 export function LogoMark({ size = 28, className }: { size?: number; className?: string }) {
   return (
@@ -15,7 +16,7 @@ export function Wordmark({ className }: { className?: string }) {
   return (
     <span className={cn("inline-flex items-center gap-2.5", className)}>
       <LogoMark />
-      <span className="font-display text-xl font-medium text-ink">Offer Letter PDF</span>
+      <span className="font-display text-xl font-medium text-ink">{BRAND.name}</span>
     </span>
   );
 }

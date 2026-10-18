@@ -8,6 +8,7 @@ import { sendEmail } from "@/lib/email/send.server";
 import { appUrl } from "@/lib/payu/gateway.server";
 import { adminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { BRAND } from "@/lib/brand";
 
 // Admin changes to countries, styles, prices, companies, misuse reports and payments. Each one checks the admin
 // role first; writes go through the admin's session (RLS + guard triggers) except payments, which only the
@@ -124,6 +125,26 @@ export async function activatePrice(id: string): Promise<AdminResult> {
   return done(["/admin", "/admin/prices", "/"], "Price switched on. New checkouts use it now.");
 }
 
+const planSchema = z.object({
+  onboarding: z.string().trim().regex(/^\d{1,7}(\.\d{1,2})?$/, "Enter the onboarding fee like 4999."),
+  monthly: z.string().trim().regex(/^\d{1,7}(\.\d{1,2})?$/, "Enter the monthly price like 4999."),
+  allowance: z.string().trim().regex(/^\d{1,7}(\.\d{1,2})?$/, "Enter the domain allowance like 1499."),
+});
+
+/** Website plan prices. Invoices already issued keep their amount; new ones use these. */
+export async function savePlan(planId: string, input: z.input<typeof planSchema>): Promise<AdminResult> {
+  if (!(await adminActor())) return NOT_ADMIN;
+  const parsed = planSchema.safeParse(input);
+  if (!parsed.success) return failed(parsed.error.issues[0]?.message ?? "Check the plan’s prices.");
+  const minor = (value: string) => Math.round(Number(value) * 100);
+  const update = { onboarding_minor: minor(parsed.data.onboarding), monthly_minor: minor(parsed.data.monthly), domain_allowance_minor: minor(parsed.data.allowance) };
+  if (update.onboarding_minor <= 0 || update.monthly_minor <= 0) return failed("Prices must be more than zero.");
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("plans").update(update).eq("id", planId).select("name").maybeSingle();
+  if (error || !data) return failed("The plan couldn’t be saved.", error);
+  return done(["/admin/prices", "/website", "/"], `${data.name} saved. New invoices use these prices.`);
+}
+
 // --- Companies ------------------------------------------------------------------------------------------------
 
 export async function setCompanyLimit(ownerId: string, limit: number): Promise<AdminResult> {
@@ -152,9 +173,9 @@ export async function suspendCompany(companyId: string, reason: string): Promise
   const emailed = owner
     ? await sendEmail({
         to: owner,
-        subject: `${data.legal_name} is suspended on Offer Letter PDF`,
-        text: `Hello,\n\nWe’ve suspended ${data.legal_name} on Offer Letter PDF, so no new letters or payments can be made for it.\n\nReason: ${text}\n\nLetters you’ve already issued stay available to download: ${appUrl()}/dashboard\n\nIf you think this is a mistake, reply to this email.\n\nOffer Letter PDF`,
-        html: `<p>Hello,</p><p>We’ve suspended <strong>${escapeHtml(data.legal_name)}</strong> on Offer Letter PDF, so no new letters or payments can be made for it.</p><p><strong>Reason:</strong> ${escapeHtml(text)}</p><p>Letters you’ve already issued stay available to <a href="${appUrl()}/dashboard">download</a>.</p><p>If you think this is a mistake, reply to this email.</p><p>Offer Letter PDF</p>`,
+        subject: `${data.legal_name} is suspended on ${BRAND.name}`,
+        text: `Hello,\n\nWe’ve suspended ${data.legal_name} on ${BRAND.name}, so no new letters or payments can be made for it.\n\nReason: ${text}\n\nLetters you’ve already issued stay available to download: ${appUrl()}/dashboard\n\nIf you think this is a mistake, reply to this email.\n\n${BRAND.name}`,
+        html: `<p>Hello,</p><p>We’ve suspended <strong>${escapeHtml(data.legal_name)}</strong> on ${BRAND.name}, so no new letters or payments can be made for it.</p><p><strong>Reason:</strong> ${escapeHtml(text)}</p><p>Letters you’ve already issued stay available to <a href="${appUrl()}/dashboard">download</a>.</p><p>If you think this is a mistake, reply to this email.</p><p>${BRAND.name}</p>`,
       })
     : false;
   return done(["/admin", "/admin/companies"], emailed ? `${data.legal_name} is suspended. We emailed the owner.` : `${data.legal_name} is suspended. The owner couldn’t be emailed.`);

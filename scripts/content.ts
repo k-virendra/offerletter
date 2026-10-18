@@ -8,6 +8,7 @@ import {
   fieldSchema,
   jurisdictionSchema,
   letterPhrasesSchema,
+  planSchema,
   priceSchema,
   sectionSchema,
   templateSchema,
@@ -15,6 +16,7 @@ import {
   type FieldContent,
   type JurisdictionContent,
   type LetterPhrasesContent,
+  type PlanContent,
   type PriceContent,
   type SectionContent,
   type TemplateContent,
@@ -28,6 +30,7 @@ export interface Content {
   sections: SectionContent[];
   fields: FieldContent[];
   prices: PriceContent[];
+  plans: PlanContent[];
   phrases: LetterPhrasesContent;
   clauseFiles: { file: string; content: ClauseFileContent }[];
 }
@@ -72,6 +75,8 @@ export function loadContent(): Content {
   const sections = readYaml("sections.yaml", z.array(sectionSchema));
   const fields = readYaml("fields.yaml", z.array(fieldSchema));
   const prices = readYaml("prices.yaml", z.array(priceSchema));
+  const plans = readYaml("plans.yaml", z.array(planSchema));
+  unique(plans, (p) => p.key, "plans.yaml");
   const phrases = readYaml("letter-phrases.yaml", letterPhrasesSchema);
 
   unique(jurisdictions, (j) => j.code, "jurisdictions.yaml");
@@ -123,5 +128,5 @@ export function loadContent(): Content {
       return { file, content };
     });
 
-  return { jurisdictions, templates, sections, fields, prices, phrases, clauseFiles };
+  return { jurisdictions, templates, sections, fields, prices, plans, phrases, clauseFiles };
 }

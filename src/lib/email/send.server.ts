@@ -1,5 +1,6 @@
 import "server-only";
 import { isLocalStack, serverEnv } from "@/lib/env.server";
+import { BRAND } from "@/lib/brand";
 
 // Transactional email (receipts). Resend when RESEND_API_KEY is set; on a local stack without it, the local Mailpit
 // inbox (the one sign-in emails go to), so receipts can be checked during development.
@@ -27,7 +28,7 @@ export async function sendEmail(email: Email): Promise<boolean> {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          From: { Email: "receipts@offer-letter-pdf.localhost", Name: "Offer Letter PDF" },
+          From: { Email: `billing@${BRAND.domain}`, Name: BRAND.name },
           To: [{ Email: email.to }],
           Subject: email.subject,
           HTML: email.html,

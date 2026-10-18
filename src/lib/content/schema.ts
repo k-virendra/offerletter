@@ -95,6 +95,18 @@ export const priceSchema = z.strictObject({
   notes: z.string().optional(),
 });
 
+export const planSchema = z.strictObject({
+  key: z.string().regex(/^[a-z][a-z0-9_]{2,40}$/),
+  name: z.string().min(1).max(80),
+  description: z.string().max(500).optional(),
+  currency: z.string().regex(/^[A-Z]{3}$/),
+  onboarding_minor: z.number().int().positive(),
+  monthly_minor: z.number().int().positive(),
+  domain_allowance_minor: z.number().int().nonnegative(),
+  features: z.array(z.string().min(1).max(160)).max(12),
+  sort_order: z.number().int().default(0),
+});
+
 export const clauseSchema = z
   .strictObject({
     section: sectionKey,
@@ -132,5 +144,6 @@ export type TemplateContent = z.infer<typeof templateSchema>;
 export type SectionContent = z.infer<typeof sectionSchema>;
 export type FieldContent = z.infer<typeof fieldSchema>;
 export type PriceContent = z.infer<typeof priceSchema>;
+export type PlanContent = z.infer<typeof planSchema>;
 export type ClauseFileContent = z.infer<typeof clauseFileSchema>;
 export type LetterPhrasesContent = z.infer<typeof letterPhrasesSchema>;
