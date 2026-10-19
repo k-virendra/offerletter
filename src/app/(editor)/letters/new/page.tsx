@@ -3,7 +3,7 @@ import { NewLetterForm } from "@/components/editor/new-letter-form";
 import { getProfile, requireUser } from "@/lib/auth";
 import { listCompanies } from "@/lib/companies/queries";
 import { countryOptions } from "@/lib/countries";
-import { listJurisdictions, loadLetterContext } from "@/lib/letter/context.server";
+import { companyLetterPlace, listJurisdictions, loadLetterContext } from "@/lib/letter/context.server";
 import { letterCompany } from "@/lib/letter/letters.server";
 
 export const metadata: Metadata = { title: "New letter" };
@@ -15,8 +15,9 @@ export default async function NewLetterPage({ searchParams }: PageProps<"/letter
   const usable = list.companies.filter((company) => !company.archived_at && !company.suspended_at);
   const companies = await Promise.all(
     usable.map(async (company) => ({
-      summary: { id: company.id, name: company.legal_name, countryCode: company.country_code, paid: company.paid, drafts: company.drafts },
+      summary: { id: company.id, name: company.legal_name, countryCode: company.country_code, regionCode: company.region_code, paid: company.paid, drafts: company.drafts },
       letterCompany: await letterCompany(company, 60 * 60),
+      place: await companyLetterPlace(company),
     })),
   );
 
@@ -39,7 +40,6 @@ export default async function NewLetterPage({ searchParams }: PageProps<"/letter
       placesLeft={Math.max(0, limit - list.companies.length)}
       limit={limit}
       addingCompany={params["add-company"] === "1"}
-      jurisdictions={jurisdictions}
       sampleContexts={{ a4, letter }}
       countries={countryOptions()}
     />

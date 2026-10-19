@@ -42,12 +42,19 @@ function subscribeZoom(listener: () => void) {
   return () => zoomListeners.delete(listener);
 }
 
+export type PreviewLanguages = {
+  options: { code: string; label: string }[];
+  value: string;
+  onChange: (code: string) => void;
+};
+
 export function PreviewPane({
   visible,
   doc,
   styleName,
   missing,
   onJump,
+  languages,
   className,
 }: {
   /** False while the pane is hidden behind the Form tab on small screens: the pages aren't laid out then. */
@@ -56,6 +63,8 @@ export function PreviewPane({
   styleName: string;
   missing: FieldDefinition[];
   onJump: (field: string) => void;
+  /** A letter that also comes translated: which version the preview shows. */
+  languages?: PreviewLanguages;
   className?: string;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -106,6 +115,25 @@ export function PreviewPane({
             {styleName} · {paper.label} · {pages} {pages === 1 ? "page" : "pages"}
           </span>
         </div>
+        {languages ? (
+          <div role="radiogroup" aria-label="Preview language" className="flex rounded-[10px] bg-white p-0.5 ring-1 ring-[#C9D8D1]">
+            {languages.options.map((option) => (
+              <button
+                key={option.code}
+                type="button"
+                role="radio"
+                aria-checked={languages.value === option.code}
+                onClick={() => languages.onChange(option.code)}
+                className={cn(
+                  "min-h-10 rounded-lg px-3 text-sm font-semibold",
+                  languages.value === option.code ? "bg-evergreen-600 text-white" : "text-ink-2 hover:bg-hover-soft",
+                )}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
         <div role="group" aria-label="Zoom" className="flex items-center gap-1">
           <button type="button" onClick={() => step(-1)} aria-label="Zoom out" className="inline-flex size-11 items-center justify-center rounded-[10px] hover:bg-white">
             <Minus aria-hidden className="size-4" />
@@ -127,6 +155,12 @@ export function PreviewPane({
           </button>
         </div>
       </div>
+
+      {languages && languages.value !== languages.options[0]?.code ? (
+        <p className="px-4 pt-3 text-[13px] text-ink-2">
+          The translation comes with the paid letter. Your typed answers appear as you typed them, and the English version prevails.
+        </p>
+      ) : null}
 
       {missing.length ? (
         <>

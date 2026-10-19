@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { getProfile, requireUser } from "@/lib/auth";
 import { letterSummary, placesLeft } from "@/lib/companies/format";
 import { listCompanies, type CompanySummary } from "@/lib/companies/queries";
-import { countryName, countryOptions } from "@/lib/countries";
+import { countryOptions, placeName } from "@/lib/countries";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "My companies" };
@@ -223,7 +223,7 @@ function LimitReached({ companies, limit }: { companies: CompanySummary[]; limit
                       {target.suspended ? <StatusBadge kind="suspended" /> : null}
                     </span>
                   </th>
-                  <td className="border-b border-line-soft px-4 py-3">{countryName(company.country_code)}</td>
+                  <td className="border-b border-line-soft px-4 py-3">{placeName(company.country_code, company.region_code)}</td>
                   <td className="border-b border-line-soft px-4 py-3">{letterSummary(company.paid, company.drafts)}</td>
                   <td className="border-b border-line-soft px-4 py-3">
                     {deletable ? (

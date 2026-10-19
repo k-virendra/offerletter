@@ -1,5 +1,8 @@
 # The fixed wording around the clauses. {{name}} parts are filled in by the letter: company, candidate, date,
 # place, page, pages, days, amount. A country can override any phrase; the fee line must always name the company.
+# `languages` holds translations (DRAFT, for review with the clauses): every default phrase, section titles
+# (section.<key>, section.<key>.short), printed answers (option.<field>.<value>) and translation_notice, which
+# translated letters show on every page.
 defaults:
   confidential: Private and confidential
   label.to: To
@@ -27,9 +30,147 @@ defaults:
   company.registered_office: Registered office
   company.registration: Registration
   company.contact: Contact
+  value.yes: "Yes"
+  value.no: "No"
 overrides:
   # US and Canadian letters date the letter without a place.
   US:
     date_line: "{{date}}"
   CA:
     date_line: "{{date}}"
+languages:
+  de:
+    confidential: Persönlich und vertraulich
+    label.to: An
+    label.from: Von
+    label.date: Datum
+    label.place: Ort
+    date_line: "{{place}}, {{date}}"
+    addressed_to: "Für {{candidate}} · {{date}}"
+    page: "Seite {{page}} von {{pages}}"
+    fee_line: "{{company}} erhebt von Bewerberinnen und Bewerbern keine Gebühren."
+    signature.company_heading: "Für {{company}}"
+    signature.company_note: Im Namen des Unternehmens unterzeichnet
+    signature.candidate_heading: Angenommen
+    signature.candidate_note: Ich nehme dieses Angebot zu den oben genannten Bedingungen an.
+    signature.place: Ort
+    signature.date: Datum
+    facts.heading: Das Angebot im Überblick
+    facts.role: Position
+    facts.start_date: Beginn
+    facts.annual_salary: Jahresgehalt
+    facts.annual_salary_value: "{{amount}} brutto"
+    facts.reply_by: Antwort bis
+    facts.holiday: Urlaub
+    facts.holiday_value: "{{days}} Tage"
+    company.registered_office: Sitz der Gesellschaft
+    company.registration: Registernummer
+    company.contact: Kontakt
+    value.yes: Ja
+    value.no: Nein
+    translation_notice: Übersetzung zur Information – maßgeblich ist die englische Fassung.
+    section.candidate: Empfänger
+    section.position: Ihre Position und Ihr Beginn
+    section.position.short: Position
+    section.workplace: Arbeitsort und Arbeitszeit
+    section.workplace.short: Arbeitsort
+    section.compensation: Gehalt
+    section.bonus: Jährlicher Bonus
+    section.bonus.short: Bonus
+    section.probation: Probezeit
+    section.leave: Urlaub
+    section.notice: Kündigungsfristen
+    section.notice.short: Kündigung
+    section.pension: Altersversorgung
+    section.benefits: Zusatzleistungen
+    section.benefits.short: Leistungen
+    section.relocation: Unterstützung beim Umzug
+    section.relocation.short: Umzug
+    section.required_information: Hinweise, die wir Ihnen geben müssen
+    section.required_information.short: Hinweise
+    section.written_terms: Schriftliche Arbeitsbedingungen
+    section.written_terms.short: Nachweis
+    section.conditions: Bedingungen dieses Angebots
+    section.conditions.short: Bedingungen
+    section.acceptance: Antwort und Unterschriften
+    option.position.contract_type.permanent: Unbefristet
+    option.position.contract_type.fixed_term: Befristet
+    option.pay.period.year: Jahr
+    option.pay.period.month: Monat
+    option.pay.frequency.monthly: Monatlich
+    option.probation.months.6: 6 Monate
+    option.probation.months.3: 3 Monate
+    option.probation.months.0: Keine Probezeit
+    option.notice.option.statutory: Gesetzliche Fristen (§ 622 BGB)
+    option.notice.option.custom: Vereinbarte Frist
+    option.signatory.signature.flowing: Handschrift – elegant
+    option.signatory.signature.quick: Handschrift – zügig
+    option.signatory.signature.hand: Handschrift – locker
+    option.signatory.signature.none: Mit der Hand unterschreiben
+  nl:
+    confidential: Persoonlijk en vertrouwelijk
+    label.to: Aan
+    label.from: Van
+    label.date: Datum
+    label.place: Plaats
+    date_line: "{{place}}, {{date}}"
+    addressed_to: "Voor {{candidate}} · {{date}}"
+    page: "Pagina {{page}} van {{pages}}"
+    fee_line: "{{company}} brengt kandidaten nooit kosten in rekening."
+    signature.company_heading: "Namens {{company}}"
+    signature.company_note: Ondertekend namens het bedrijf
+    signature.candidate_heading: Voor akkoord
+    signature.candidate_note: Ik aanvaard dit aanbod onder de hierboven genoemde voorwaarden.
+    signature.place: Plaats
+    signature.date: Datum
+    facts.heading: Het aanbod in het kort
+    facts.role: Functie
+    facts.start_date: Startdatum
+    facts.annual_salary: Jaarsalaris
+    facts.annual_salary_value: "{{amount}} bruto"
+    facts.reply_by: Reageren vóór
+    facts.holiday: Vakantie
+    facts.holiday_value: "{{days}} dagen"
+    company.registered_office: Vestigingsadres
+    company.registration: Registratienummer
+    company.contact: Contact
+    value.yes: Ja
+    value.no: Nee
+    translation_notice: Vertaling ter informatie – de Engelse versie is leidend.
+    section.candidate: Kandidaat
+    section.position: Uw functie en startdatum
+    section.position.short: Functie
+    section.workplace: Werkplek en werktijden
+    section.workplace.short: Werkplek
+    section.compensation: Salaris
+    section.bonus: Jaarlijkse bonus
+    section.bonus.short: Bonus
+    section.probation: Proeftijd
+    section.leave: Vakantie en verlof
+    section.leave.short: Vakantie
+    section.notice: Opzegtermijnen
+    section.notice.short: Opzegging
+    section.pension: Pensioen
+    section.benefits: Secundaire arbeidsvoorwaarden
+    section.benefits.short: Voorzieningen
+    section.relocation: Hulp bij verhuizing
+    section.relocation.short: Verhuizing
+    section.collective_agreement: Collectieve arbeidsovereenkomst
+    section.collective_agreement.short: Cao
+    section.conditions: Voorwaarden van dit aanbod
+    section.conditions.short: Voorwaarden
+    section.acceptance: Reactie en ondertekening
+    option.position.contract_type.permanent: Onbepaalde tijd
+    option.position.contract_type.fixed_term: Bepaalde tijd
+    option.pay.period.year: Jaar
+    option.pay.period.month: Maand
+    option.pay.frequency.monthly: Maandelijks
+    option.probation.months.2: 2 maanden
+    option.probation.months.1: 1 maand
+    option.probation.months.0: Geen proeftijd
+    option.notice.option.statutory: Wettelijke termijnen
+    option.notice.option.custom: Overeengekomen termijn
+    option.signatory.signature.flowing: Handgeschreven – elegant
+    option.signatory.signature.quick: Handgeschreven – vlot
+    option.signatory.signature.hand: Handgeschreven – los
+    option.signatory.signature.none: Met de hand ondertekenen

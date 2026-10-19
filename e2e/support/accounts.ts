@@ -42,11 +42,11 @@ const SAMPLE_COMPANY = {
   signatory_title: "Managing Director",
 } satisfies Partial<TablesInsert<"companies">>;
 
-/** Saves companies straight to the database, as if the user had added them earlier. */
-export async function seedCompanies(ownerId: string, names: string[]) {
+/** Saves companies straight to the database, as if the user had added them earlier. They're German unless `place` says otherwise. */
+export async function seedCompanies(ownerId: string, names: string[], place?: { country_code: string; region_code?: string | null }) {
   const { data, error } = await admin()
     .from("companies")
-    .insert(names.map((legal_name) => ({ ...SAMPLE_COMPANY, legal_name, owner_id: ownerId })))
+    .insert(names.map((legal_name) => ({ ...SAMPLE_COMPANY, ...place, legal_name, owner_id: ownerId })))
     .select("id, legal_name");
   if (error) throw new Error(`seedCompanies failed: ${error.message}`);
   return data;

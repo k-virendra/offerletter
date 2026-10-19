@@ -203,6 +203,7 @@ export type Database = {
           logo_path: string | null
           logo_width: number | null
           owner_id: string
+          region_code: string | null
           registered_address: string
           registration_number: string
           signatory_name: string
@@ -226,6 +227,7 @@ export type Database = {
           logo_path?: string | null
           logo_width?: number | null
           owner_id: string
+          region_code?: string | null
           registered_address: string
           registration_number: string
           signatory_name: string
@@ -249,6 +251,7 @@ export type Database = {
           logo_path?: string | null
           logo_width?: number | null
           owner_id?: string
+          region_code?: string | null
           registered_address?: string
           registration_number?: string
           signatory_name?: string
@@ -476,6 +479,8 @@ export type Database = {
           public_note: string | null
           selectable: boolean
           sort_order: number
+          translation_language: string | null
+          translation_locale: string | null
           updated_at: string
         }
         Insert: {
@@ -491,6 +496,8 @@ export type Database = {
           public_note?: string | null
           selectable?: boolean
           sort_order?: number
+          translation_language?: string | null
+          translation_locale?: string | null
           updated_at?: string
         }
         Update: {
@@ -506,6 +513,8 @@ export type Database = {
           public_note?: string | null
           selectable?: boolean
           sort_order?: number
+          translation_language?: string | null
+          translation_locale?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -566,6 +575,7 @@ export type Database = {
           note: string | null
           pdf_path: string | null
           snapshot: Json
+          translated_pdf_path: string | null
           version: number
         }
         Insert: {
@@ -577,6 +587,7 @@ export type Database = {
           note?: string | null
           pdf_path?: string | null
           snapshot: Json
+          translated_pdf_path?: string | null
           version: number
         }
         Update: {
@@ -588,6 +599,7 @@ export type Database = {
           note?: string | null
           pdf_path?: string | null
           snapshot?: Json
+          translated_pdf_path?: string | null
           version?: number
         }
         Relationships: [

@@ -18,6 +18,8 @@ export const jurisdictionSchema = z.strictObject({
   sort_order: z.number().int(),
   admin_notes: z.string().optional(),
   public_note: z.string().max(300).optional(),
+  /** The country's own language, when it isn't English: paid letters also come as a reviewed translation. */
+  translation: z.strictObject({ language: z.string().regex(/^[a-z]{2}$/).refine((l) => l !== "en"), locale: z.string().regex(/^[a-z]{2}-[A-Z]{2}$/) }).optional(),
 });
 
 export const templateSchema = z.strictObject({
@@ -133,6 +135,11 @@ export const letterPhrasesSchema = z
   .strictObject({
     defaults: z.record(phraseKey, phraseText),
     overrides: z.record(jurisdictionCode, z.record(phraseKey, phraseText)).default({}),
+    /**
+     * Translations by language: every default phrase, plus section titles (section.<key>, section.<key>.short),
+     * printed answers (option.<field>.<value>) and translation_notice.
+     */
+    languages: z.record(z.string().regex(/^[a-z]{2}$/), z.record(phraseKey, phraseText)).default({}),
   })
   .refine((p) => p.defaults.fee_line?.includes("{{company}}"), { message: "fee_line must name the company with {{company}}" })
   .refine((p) => Object.values(p.overrides).every((o) => o.fee_line === undefined || o.fee_line.includes("{{company}}")), {

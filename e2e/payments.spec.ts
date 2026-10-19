@@ -38,7 +38,7 @@ async function payment(txnid: string) {
 }
 
 async function versions(letterId: string) {
-  const { data } = await testAdmin().from("letter_versions").select("version, pdf_path, note").eq("letter_id", letterId).order("version");
+  const { data } = await testAdmin().from("letter_versions").select("version, pdf_path, translated_pdf_path, note").eq("letter_id", letterId).order("version");
   return data ?? [];
 }
 
@@ -53,6 +53,8 @@ test("paying issues the letter once, with its PDF and one receipt", async ({ pag
   await page.waitForURL(`**/letters/${letterId}/checkout`);
   await expect(page.getByText("Free corrections until")).toBeVisible();
   await expect(page.getByText("Charged in Indian rupees.", { exact: false })).toBeVisible();
+  // A German letter also comes in German, at the same price.
+  await expect(page.getByText("The final PDF in English, plus a German translation (the English version prevails)")).toBeVisible();
 
   // Details are checked before anything is sent.
   await page.getByRole("button", { name: `Pay ${price.full} with PayU` }).click();
@@ -73,7 +75,15 @@ test("paying issues the letter once, with its PDF and one receipt", async ({ pag
   expect(JSON.stringify(paid.raw_responses)).toContain('"received_from":"return"');
   // Card details in PayU's response are never stored.
   expect(JSON.stringify(paid.raw_responses)).not.toMatch(/512345|name_on_card|cardnum/);
-  expect(await versions(letterId)).toEqual([expect.objectContaining({ version: 1, note: "Original, after payment", pdf_path: expect.stringMatching(/\/v1-[0-9a-f]{12}\.pdf$/) })]);
+  expect(await versions(letterId)).toEqual([
+    expect.objectContaining({
+      version: 1,
+      note: "Original, after payment",
+      pdf_path: expect.stringMatching(/\/v1-[0-9a-f]{12}\.pdf$/),
+      translated_pdf_path: expect.stringMatching(/\/v1-[0-9a-f]{12}\.de\.pdf$/),
+    }),
+  ]);
+  await expect(page.getByRole("link", { name: "German translation" })).toBeVisible();
   const { data: letter } = await testAdmin().from("letters").select("status, current_version, correction_until").eq("id", letterId).single();
   expect(letter).toMatchObject({ status: "paid", current_version: 1 });
   const days = (new Date(letter!.correction_until!).getTime() - Date.now()) / 86_400_000;
@@ -97,6 +107,17 @@ test("paying issues the letter once, with its PDF and one receipt", async ({ pag
     const { text } = await extractText(await getDocumentProxy(new Uint8Array(await response.body())), { mergePages: true });
     expect(text).toContain("Lena Hoffmann");
     expect(text.toLowerCase()).not.toContain("preview");
+    expect(text).not.toContain("Probezeit");
+
+    // The German translation: the same letter in German, saying the English version prevails.
+    const german = await page.request.get(`/api/letters/${letterId}/versions/1/pdf?lang=de`);
+    expect(german.status()).toBe(200);
+    expect(german.headers()["content-disposition"]).toContain("Deutsch");
+    const translated = (await extractText(await getDocumentProxy(new Uint8Array(await german.body())), { mergePages: true })).text;
+    expect(translated).toContain("Lena Hoffmann");
+    expect(translated).toContain("Probezeit");
+    expect(translated).toContain("maßgeblich ist die englische Fassung");
+    expect((await page.request.get(`/api/letters/${letterId}/versions/1/pdf?lang=nl`)).status()).toBe(404);
   }
 
   // The letter's page, and its receipt.
@@ -105,6 +126,8 @@ test("paying issues the letter once, with its PDF and one receipt", async ({ pag
   await expect(page.getByText("Paid · version 1")).toBeVisible();
   await expect(page.getByText(/Fingerprint [0-9a-f]{4} [0-9a-f]{4}/)).toBeVisible();
   await expect(page.getByText("Original, after payment", { exact: false })).toBeVisible();
+  await expect(page.getByText("The letter comes in English and German, both included.", { exact: false })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Download version 1 in German" })).toBeVisible();
   await expect(page.getByText(/7 days left|6 days left/)).toBeVisible();
   await page.getByRole("link", { name: "View the receipt" }).click();
   await expect(page.getByRole("heading", { name: "Receipt" })).toBeVisible();
@@ -203,7 +226,11 @@ test.describe("payment outcomes", () => {
     await page.waitForURL(`**/letters/${letterId}`, { timeout: 60_000 });
     await expect(page.getByText("Paid · version 2")).toBeVisible();
     await expect(page.getByText("Corrected: Start date", { exact: false })).toBeVisible();
-    expect((await versions(letterId)).map((v) => v.version)).toEqual([1, 2]);
+    // The correction is issued in both languages too.
+    expect((await versions(letterId)).map((v) => [v.version, Boolean(v.pdf_path), Boolean(v.translated_pdf_path)])).toEqual([
+      [1, true, true],
+      [2, true, true],
+    ]);
 
     // Once the free period is over, the editor is closed.
     await testAdmin().from("letters").update({ correction_until: new Date(Date.now() - 60_000).toISOString() }).eq("id", letterId);

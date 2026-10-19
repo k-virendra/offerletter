@@ -1,0 +1,80 @@
+# Netherlands, Dutch translation of nl.yaml. DRAFT wording for legal review. Nothing here is legal advice.
+# Each clause translates the English clause for the same section: the same values ({{...}}) and the same conditions
+# (the content tests check this). Locks and editor help come from the English clauses. Paid letters come with this
+# translation once its clauses are approved; the English version prevails, and the letter says so on every page.
+# Typed answers (job title, place of work, benefits…) appear as typed, so free text is set off with a colon.
+jurisdiction: NL
+language: nl
+clauses:
+  - section: candidate
+    title: Arbeidsaanbod
+    body: |
+      Beste {{candidate.greeting_name}},
+
+      Met veel plezier bieden wij u de functie {{position.job_title}}{{#if position.department}} in ons team {{position.department}}{{/if}} aan bij {{company.legal_name}}. Deze brief beschrijft de belangrijkste voorwaarden van ons aanbod. Uw arbeidsovereenkomst bevestigt deze en de overige voorwaarden schriftelijk.
+
+  - section: position
+    body: |
+      U rapporteert aan {{position.reports_to}}. Uw dienstverband begint op {{position.start_date}}{{#if position.contract_type == "fixed_term"}} en is voor bepaalde tijd, tot en met {{position.end_date}}{{/if}}.
+
+  - section: workplace
+    body: |
+      Uw werkplek: {{workplace.location}}. Uw werkweek bedraagt {{workplace.hours_per_week}} uur.
+
+  - section: compensation
+    title: Salaris
+    body: |
+      Uw brutosalaris bedraagt {{pay.base_amount}} per {{#if pay.period == "month"}}maand{{else}}jaar{{/if}} en wordt maandelijks betaald. Daarnaast ontvangt u vakantiegeld van ten minste 8% van uw brutosalaris, elk jaar uitbetaald in mei.
+
+      | Onderdeel | Brutobedrag |
+      |---|---:|
+      | Jaarsalaris (zonder vakantiegeld) | {{pay.annual_amount}} |
+      | Per maandelijkse betaling | {{pay.period_amount}} |
+
+  - section: bonus
+    body: |
+      U komt in aanmerking voor een jaarlijkse bonus: {{bonus.terms}}. De regels van de dan geldende bonusregeling zijn van toepassing.
+
+  - section: probation
+    body: |
+      {{#if probation.months == "0"}}Er geldt geen proeftijd.{{else}}Uw dienstverband begint met een proeftijd van {{probation.months}}, die voor u en het bedrijf gelijk is. Tijdens de proeftijd kunnen beide partijen het dienstverband met onmiddellijke ingang beëindigen.{{/if}}
+
+  - section: leave
+    body: |
+      U ontvangt {{leave.days}} betaalde vakantiedagen per jaar, op basis van een volledige werkweek. Het wettelijk minimum is vier keer uw wekelijkse arbeidsduur.
+
+  - section: notice
+    body: |
+      {{#if notice.option == "custom"}}Na de proeftijd geldt bij beëindiging van het dienstverband de overeengekomen opzegtermijn: {{notice.custom_period}}, en nooit korter dan de wettelijke opzegtermijn.{{else}}Na de proeftijd gelden bij beëindiging van het dienstverband de wettelijke opzegtermijnen uit het Burgerlijk Wetboek: één maand voor u, en één tot vier maanden voor het bedrijf, afhankelijk van hoe lang u bij ons werkt. De opzegging gaat in tegen het einde van een kalendermaand.{{/if}} Op de beëindiging van het dienstverband is het Nederlandse ontslagrecht van toepassing.
+
+  - section: pension
+    body: |
+      U neemt deel aan de pensioenregeling van het bedrijf: {{pension.terms}}
+
+  - section: benefits
+    body: |
+      Daarnaast ontvangt u: {{benefits.description}}.
+
+  - section: relocation
+    body: |
+      Ter ondersteuning van uw verhuizing bieden wij: {{relocation.description}}.
+
+  - section: collective_agreement
+    title: Collectieve arbeidsovereenkomst (cao)
+    body: |
+      Op uw dienstverband is deze cao van toepassing: {{collective.name}}. Waar de cao u betere voorwaarden biedt dan deze brief, geldt de cao.
+
+  - section: conditions
+    body: |
+      {{#if conditions.right_to_work or conditions.references or conditions.background_check}}Dit aanbod is afhankelijk van:
+
+      {{#if conditions.right_to_work}}- bewijs dat u in Nederland mag werken, inclusief een verblijfs- en werkvergunning als u die nodig heeft
+      {{/if}}{{#if conditions.references}}- referenties die het bedrijf voldoende acht
+      {{/if}}{{#if conditions.background_check}}- een positieve antecedentenscreening, uitgevoerd met uw toestemming
+      {{/if}}{{/if}}
+
+  - section: acceptance
+    body: |
+      Wij vragen u dit aanbod te bevestigen door uiterlijk {{acceptance.reply_by}} een ondertekend exemplaar van deze brief aan ons terug te sturen. Wij kijken ernaar uit u in ons team te verwelkomen.
+
+      Met vriendelijke groet,

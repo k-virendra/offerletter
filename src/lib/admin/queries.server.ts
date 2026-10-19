@@ -21,15 +21,23 @@ export type CountryRow = {
   missing: string[];
   /** Required sections whose approved clause comes from a parent (US-NY inherits US). */
   inherited: number;
+  /**
+   * The country's own language when letters also come translated (de), and the sections with an English clause but
+   * no approved translation: until there are none, paid letters come in English only.
+   */
+  translation: { language: string; missing: string[] } | null;
 };
 
 /** Every country with what it still needs before it can be switched on (the same rule as the database guard). */
 export async function countryReadiness(): Promise<CountryRow[]> {
   const supabase = await createClient();
   const [jurisdictions, sections, clauses] = await Promise.all([
-    supabase.from("jurisdictions").select("code, parent_code, name, currency, paper_size, enabled, selectable, sort_order, public_note, admin_notes").order("sort_order"),
+    supabase
+      .from("jurisdictions")
+      .select("code, parent_code, name, currency, paper_size, enabled, selectable, sort_order, public_note, admin_notes, translation_language")
+      .order("sort_order"),
     supabase.from("sections").select("key, default_title, always_included, default_order").order("default_order"),
-    supabase.from("clause_variants").select("section_key, jurisdiction_code, review_status, locked").eq("language", "en"),
+    supabase.from("clause_variants").select("section_key, jurisdiction_code, review_status, locked, language"),
   ]);
   if (jurisdictions.error || sections.error || clauses.error) throw new Error("Countries couldn't be loaded");
   const byCode = new Map(jurisdictions.data.map((j) => [j.code, j]));
@@ -41,7 +49,8 @@ export async function countryReadiness(): Promise<CountryRow[]> {
 
   return jurisdictions.data.map((j) => {
     const chain = chainOf(j.code);
-    const inChain = clauses.data.filter((c) => chain.includes(c.jurisdiction_code));
+    const inChain = clauses.data.filter((c) => c.language === "en" && chain.includes(c.jurisdiction_code));
+    const translated = clauses.data.filter((c) => c.language === j.translation_language && c.review_status === "approved" && chain.includes(c.jurisdiction_code));
     const required = sections.data.filter((s) => s.always_included || inChain.some((c) => c.section_key === s.key && c.locked));
     const approved = (key: string, codes: string[]) => inChain.some((c) => c.section_key === key && c.review_status === "approved" && codes.includes(c.jurisdiction_code));
     const parent = j.parent_code ? byCode.get(j.parent_code) : undefined;
@@ -59,6 +68,12 @@ export async function countryReadiness(): Promise<CountryRow[]> {
       required: required.length,
       missing: required.filter((s) => !approved(s.key, chain)).map((s) => s.default_title),
       inherited: required.filter((s) => !approved(s.key, [j.code]) && approved(s.key, chain.slice(1))).length,
+      translation: j.translation_language
+        ? {
+            language: j.translation_language,
+            missing: sections.data.filter((s) => inChain.some((c) => c.section_key === s.key) && !translated.some((c) => c.section_key === s.key)).map((s) => s.default_title),
+          }
+        : null,
     };
   });
 }

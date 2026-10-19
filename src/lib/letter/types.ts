@@ -54,6 +54,8 @@ export type Jurisdiction = {
   currency: string;
   locale: string;
   paperSize: PaperSize;
+  /** The country's own language when it isn't English (Germany: de, de-DE): paid letters also come translated. */
+  translation?: { language: string; locale: string };
 };
 
 export type LetterTemplate = { key: string; name: string; description: string | null; defaultAccent: string };
@@ -67,6 +69,8 @@ export type LetterContext = {
   fields: FieldDefinition[];
   templates: LetterTemplate[];
   phrases: Record<string, string>;
+  /** Set on a translation's wording (de, nl). English wording leaves it out, as letters issued before did. */
+  language?: string;
 };
 
 export type LetterCompany = {
@@ -165,6 +169,8 @@ export type LetterDocument = {
   feeLine: string;
   addressedTo: Run[];
   phrases: Record<string, string>;
+  /** The letter's language, for the page's lang attribute: "en", or a translation's. */
+  language: string;
   /** Some wording hasn't been reviewed by a lawyer yet (only possible in development). */
   unreviewed: boolean;
 };

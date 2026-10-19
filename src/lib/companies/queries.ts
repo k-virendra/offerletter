@@ -7,7 +7,7 @@ export const LOGO_BUCKET = "logos";
 const SIGNED_URL_SECONDS = 600;
 
 const COMPANY_COLUMNS =
-  "id, legal_name, trading_name, country_code, registration_number, registered_address, website, contact_phone, contact_email, logo_path, logo_width, logo_height, brand_color, signatory_name, signatory_title, archived_at, suspended_at, created_at";
+  "id, legal_name, trading_name, country_code, region_code, registration_number, registered_address, website, contact_phone, contact_email, logo_path, logo_width, logo_height, brand_color, signatory_name, signatory_title, archived_at, suspended_at, created_at";
 
 export type CompanySummary = Awaited<ReturnType<typeof listCompanies>>["companies"][number];
 

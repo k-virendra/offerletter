@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { adminActor, NOT_ADMIN, type AdminResult } from "@/lib/admin/auth";
-import { checkClause } from "@/lib/template/clause-check";
+import { checkClause, translationMismatch } from "@/lib/template/clause-check";
 import { adminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
@@ -30,27 +30,38 @@ async function fieldInfo() {
 
 export type CreateClauseResult = { ok: true; id: string } | { ok: false; message: string };
 
-/** A new draft version for a section in a country, starting from its latest version (or a blank clause). */
-export async function createClauseVersion(sectionKey: string, jurisdictionCode: string): Promise<CreateClauseResult> {
-  const actor = await adminActor();
-  if (!actor) return NOT_ADMIN as CreateClauseResult;
-  const supabase = await createClient();
-  // With the secret key: legal notes aren't readable through a user session, even an admin's.
-  const { data: latest } = await adminClient()
+/** The latest version of a section's clause in a country and language, read with the secret key (legal notes). */
+async function latestClause(sectionKey: string, jurisdictionCode: string, language: string) {
+  const { data } = await adminClient()
     .from("clause_variants")
     .select("version, title, body, locked, locked_reason, editor_help, legal_notes")
     .eq("section_key", sectionKey)
     .eq("jurisdiction_code", jurisdictionCode)
-    .eq("language", "en")
+    .eq("language", language)
     .order("version", { ascending: false })
     .limit(1)
     .maybeSingle();
+  return data;
+}
+
+/**
+ * A new draft version for a section in a country, starting from its latest version (or a blank clause). A first
+ * translation starts from the English text, to translate in place.
+ */
+export async function createClauseVersion(sectionKey: string, jurisdictionCode: string, language = "en"): Promise<CreateClauseResult> {
+  const actor = await adminActor();
+  if (!actor) return NOT_ADMIN as CreateClauseResult;
+  if (!/^[a-z]{2}$/.test(language)) return { ok: false, message: "Unknown language." };
+  const supabase = await createClient();
+  const own = await latestClause(sectionKey, jurisdictionCode, language);
+  const english = language === "en" || own ? null : await latestClause(sectionKey, jurisdictionCode, "en");
+  const latest = own ?? (english ? { ...english, version: 0, locked: false, locked_reason: null } : null);
   const { data, error } = await supabase
     .from("clause_variants")
     .insert({
       section_key: sectionKey,
       jurisdiction_code: jurisdictionCode,
-      language: "en",
+      language,
       version: (latest?.version ?? 0) + 1,
       title: latest?.title ?? null,
       body: latest?.body ?? "Write the clause here.",
@@ -91,11 +102,17 @@ export async function saveClause(id: string, input: ClauseInput): Promise<AdminR
   if (locked && !lockedReason) return { ok: false, message: "Say why the section is required, e.g. “Required in Australia”." };
 
   const supabase = await createClient();
-  const { data: clause } = await supabase.from("clause_variants").select("section_key, jurisdiction_code, review_status").eq("id", id).maybeSingle();
+  const { data: clause } = await supabase.from("clause_variants").select("section_key, jurisdiction_code, language, review_status").eq("id", id).maybeSingle();
   if (!clause) return { ok: false, message: "This clause no longer exists." };
   if (clause.review_status !== "draft") return { ok: false, message: "Only drafts can be edited. Send it back to draft first, or start a new version." };
   const check = checkClause(body, { sectionKey: clause.section_key, fields: await fieldInfo(), chain: await chainFor(clause.jurisdiction_code) });
   if (check.errors.length) return { ok: false, message: `Fix the clause text first: ${check.errors[0]}.` };
+  // A translation says what the English clause says: the same values and conditions.
+  if (clause.language !== "en") {
+    const english = await latestClause(clause.section_key, clause.jurisdiction_code, "en");
+    const mismatch = english ? translationMismatch(english.body, body) : "there’s no English clause for this section to translate";
+    if (mismatch) return { ok: false, message: `Fix the translation first: ${mismatch}.` };
+  }
 
   const { error } = await supabase
     .from("clause_variants")
@@ -145,6 +162,13 @@ export async function approveClause(id: string, input: z.input<typeof approvalSc
   if (reviewedAt.getTime() > Date.now() + 86_400_000) return { ok: false, message: "The review date can’t be in the future." };
 
   const supabase = await createClient();
+  // A translation is approved only while it still matches the latest English clause.
+  const { data: clause } = await supabase.from("clause_variants").select("section_key, jurisdiction_code, language, body").eq("id", id).maybeSingle();
+  if (clause && clause.language !== "en") {
+    const english = await latestClause(clause.section_key, clause.jurisdiction_code, "en");
+    const mismatch = english ? translationMismatch(english.body, clause.body) : "there’s no English clause for this section to translate";
+    if (mismatch) return { ok: false, message: `This translation doesn’t match the English clause: ${mismatch}. Send it back to draft and update it.` };
+  }
   const { data, error } = await supabase
     .from("clause_variants")
     .update({ review_status: "approved", reviewer: parsed.data.reviewer, reviewed_at: reviewedAt.toISOString() })

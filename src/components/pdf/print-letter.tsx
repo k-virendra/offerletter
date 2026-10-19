@@ -53,7 +53,7 @@ export function PrintLetter({
 
   if (!doc) return <p>This letter couldn’t be laid out.</p>;
   return (
-    <main>
+    <main lang={doc.language}>
       <style>{`
         @page { size: ${PAGE[doc.paperSize].width} ${PAGE[doc.paperSize].height}; margin: 0; }
         html, body { margin: 0 !important; padding: 0 !important; background: #ffffff !important; }

@@ -1,0 +1,86 @@
+# Germany, German translation of de.yaml. DRAFT wording for legal review. Nothing here is legal advice.
+# Each clause translates the English clause for the same section: the same values ({{...}}) and the same conditions
+# (the content tests check this). Locks and editor help come from the English clauses. Paid letters come with this
+# translation once its clauses are approved; the English version prevails, and the letter says so on every page.
+# Typed answers (job title, place of work, benefits…) appear as typed, so free text is set off with a colon.
+jurisdiction: DE
+language: de
+clauses:
+  - section: candidate
+    title: Arbeitsangebot
+    body: |
+      Guten Tag {{candidate.greeting_name}},
+
+      wir freuen uns sehr, Ihnen die Position {{position.job_title}}{{#if position.department}} in unserem Team {{position.department}}{{/if}} bei {{company.legal_name}} anzubieten. Dieses Schreiben fasst die wesentlichen Bedingungen unseres Angebots zusammen. Ihr Arbeitsvertrag wird diese und die übrigen Bedingungen schriftlich bestätigen.
+
+  - section: position
+    body: |
+      Sie berichten an {{position.reports_to}}. Ihr Arbeitsverhältnis beginnt am {{position.start_date}}{{#if position.contract_type == "fixed_term"}} und ist bis zum {{position.end_date}} befristet{{/if}}.
+
+  - section: workplace
+    body: |
+      Ihr Arbeitsort: {{workplace.location}}. Ihre regelmäßige Arbeitszeit beträgt {{workplace.hours_per_week}} Stunden pro Woche, von Montag bis Freitag.
+
+  - section: compensation
+    title: Gehalt
+    body: |
+      Ihr {{#if pay.period == "month"}}monatliches{{else}}jährliches{{/if}} Bruttogehalt beträgt {{pay.base_amount}}. Es wird in {{pay.instalments}} gleichen Raten jeweils zum Monatsende ausgezahlt.
+
+      | Bestandteil | Bruttobetrag |
+      |---|---:|
+      | Jahresgehalt | {{pay.annual_amount}} |
+      | Je Rate ({{pay.instalments}} pro Jahr) | {{pay.period_amount}} |
+
+  - section: bonus
+    body: |
+      Sie können einen jährlichen Bonus erhalten: {{bonus.terms}}. Es gelten die Regeln des jeweils gültigen Bonusprogramms.
+
+  - section: probation
+    body: |
+      {{#if probation.months == "0"}}Es gibt keine Probezeit.{{else}}Die ersten {{probation.months}} Ihres Arbeitsverhältnisses sind eine Probezeit. Während der Probezeit können beide Seiten das Arbeitsverhältnis mit einer Frist von zwei Wochen kündigen.{{/if}}
+
+  - section: leave
+    title: Urlaub
+    body: |
+      Sie erhalten in jedem Kalenderjahr {{leave.days}} Arbeitstage bezahlten Urlaub, bezogen auf eine Fünftagewoche. Darin ist Ihr gesetzlicher Mindesturlaub enthalten.
+
+  - section: notice
+    body: |
+      {{#if notice.option == "custom"}}Nach der Probezeit können beide Seiten das Arbeitsverhältnis mit dieser Frist kündigen: {{notice.custom_period}}. Die Kündigung bedarf der Schriftform.{{else}}Nach der Probezeit gelten die Kündigungsfristen des § 622 des Bürgerlichen Gesetzbuchs (BGB). Eine längere Kündigungsfrist, die für das Unternehmen gilt, gilt auch für Sie. Die Kündigung bedarf der Schriftform.{{/if}}
+
+  - section: pension
+    title: Betriebliche Altersversorgung
+    body: |
+      Sie können einen Teil Ihres Gehalts nach dem Betriebsrentengesetz (BetrAVG) in eine betriebliche Altersversorgung umwandeln (Entgeltumwandlung).{{#if pension.terms}} {{pension.terms}}{{/if}}
+
+  - section: benefits
+    body: |
+      Außerdem erhalten Sie: {{benefits.description}}.
+
+  - section: relocation
+    body: |
+      Zur Unterstützung Ihres Umzugs stellen wir Ihnen Folgendes zur Verfügung: {{relocation.description}}.
+
+  - section: required_information
+    title: Beratung für Beschäftigte aus Staaten außerhalb der EU
+    body: |
+      {{#if info.third_country_national}}Kostenlose und vertrauliche Beratung zu Ihren Rechten am Arbeitsplatz in Deutschland erhalten Sie in mehreren Sprachen bei der Beratungsstelle Faire Integration (www.faire-integration.de).{{/if}}
+
+  - section: written_terms
+    body: |
+      Mit Ihrem Arbeitsvertrag erhalten Sie den Nachweis der wesentlichen Bedingungen Ihres Arbeitsverhältnisses, den das Nachweisgesetz vorschreibt.
+
+  - section: conditions
+    body: |
+      {{#if conditions.right_to_work or conditions.references or conditions.background_check}}Dieses Angebot steht unter folgenden Bedingungen:
+
+      {{#if conditions.right_to_work}}- Sie weisen vor Ihrem Eintrittsdatum nach, dass Sie in Deutschland arbeiten dürfen
+      {{/if}}{{#if conditions.references}}- Referenzen, die das Unternehmen zufriedenstellen
+      {{/if}}{{#if conditions.background_check}}- eine zufriedenstellende Hintergrundprüfung, die mit Ihrer Einwilligung durchgeführt wird
+      {{/if}}{{/if}}
+
+  - section: acceptance
+    body: |
+      Bitte bestätigen Sie die Annahme dieses Angebots, indem Sie uns bis zum {{acceptance.reply_by}} eine unterschriebene Kopie dieses Schreibens zurücksenden. Wir freuen uns darauf, Sie in unserem Team willkommen zu heißen.
+
+      Mit freundlichen Grüßen

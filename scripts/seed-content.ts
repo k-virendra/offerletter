@@ -41,6 +41,8 @@ async function main() {
         sort_order: j.sort_order,
         admin_notes: j.admin_notes ?? null,
         public_note: j.public_note ?? null,
+        translation_language: j.translation?.language ?? null,
+        translation_locale: j.translation?.locale ?? null,
       },
       { onConflict: "code" },
     );
@@ -131,19 +133,22 @@ async function main() {
 
   {
     const wanted = [
-      ...Object.entries(content.phrases.defaults).map(([key, text]) => ({ key, jurisdiction_code: null as string | null, text })),
+      ...Object.entries(content.phrases.defaults).map(([key, text]) => ({ key, jurisdiction_code: null as string | null, language: "en", text })),
       ...Object.entries(content.phrases.overrides).flatMap(([code, phrases]) =>
-        Object.entries(phrases).map(([key, text]) => ({ key, jurisdiction_code: code as string | null, text })),
+        Object.entries(phrases).map(([key, text]) => ({ key, jurisdiction_code: code as string | null, language: "en", text })),
+      ),
+      ...Object.entries(content.phrases.languages).flatMap(([language, phrases]) =>
+        Object.entries(phrases).map(([key, text]) => ({ key, jurisdiction_code: null as string | null, language, text })),
       ),
     ];
-    const { data: existing, error } = await db.from("letter_phrases").select("id, key, jurisdiction_code").eq("language", "en");
+    const { data: existing, error } = await db.from("letter_phrases").select("id, key, jurisdiction_code, language");
     fail("read phrases", error);
     for (const phrase of wanted) {
-      const current = existing.find((e) => e.key === phrase.key && e.jurisdiction_code === phrase.jurisdiction_code);
+      const current = existing.find((e) => e.key === phrase.key && e.jurisdiction_code === phrase.jurisdiction_code && e.language === phrase.language);
       const { error: writeError } = current
         ? await db.from("letter_phrases").update({ text: phrase.text }).eq("id", current.id)
-        : await db.from("letter_phrases").insert({ ...phrase, language: "en" });
-      fail(`phrase ${phrase.key}`, writeError);
+        : await db.from("letter_phrases").insert(phrase);
+      fail(`phrase ${phrase.language} ${phrase.key}`, writeError);
     }
     console.log(`phrases: ${wanted.length}`);
   }

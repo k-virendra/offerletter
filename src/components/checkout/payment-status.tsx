@@ -13,7 +13,10 @@ export type PaymentView = { status: "initiated" | "pending" | "success" | "faile
 const POLL_SECONDS = 12;
 
 /** What the payment was for: an offer letter, or an invoice for a business website. */
-export type PaymentTarget = { kind: "letter"; letterId: string } | { kind: "invoice"; subscriptionId: string; invoiceId: string };
+export type PaymentTarget =
+  /** `translation`: the letter also comes in this language ({ code: "de", name: "German" }). */
+  | { kind: "letter"; letterId: string; translation?: { code: string; name: string } }
+  | { kind: "invoice"; subscriptionId: string; invoiceId: string };
 
 export function PaymentStatus({
   target,
@@ -105,7 +108,10 @@ export function PaymentStatus({
           </>
         ) : view.ready ? (
           <>
-            <p className="mt-2 text-ink-2">We’ve emailed your receipt. You can download the PDF now or any time from the letter’s page.</p>
+            <p className="mt-2 text-ink-2">
+              We’ve emailed your receipt. You can download the PDF now or any time from the letter’s page.
+              {target.translation ? ` It comes in English and ${target.translation.name}; the English version prevails.` : ""}
+            </p>
             <div className="mt-5 flex flex-wrap gap-2.5">
               <Button asChild size="lg">
                 <a href={`/api/letters/${target.letterId}/versions/1/pdf`}>
@@ -113,6 +119,14 @@ export function PaymentStatus({
                   Download PDF
                 </a>
               </Button>
+              {target.translation ? (
+                <Button asChild size="lg" variant="secondary">
+                  <a href={`/api/letters/${target.letterId}/versions/1/pdf?lang=${target.translation.code}`}>
+                    <Download aria-hidden />
+                    {target.translation.name} translation
+                  </a>
+                </Button>
+              ) : null}
               <Button asChild size="lg" variant="secondary">
                 <Link href={`/letters/${target.letterId}`}>Open the letter</Link>
               </Button>

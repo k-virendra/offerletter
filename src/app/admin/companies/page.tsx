@@ -6,14 +6,14 @@ import { CompanyLimitForm, SuspendForm } from "@/components/admin/forms";
 import { SearchBox } from "@/components/admin/search-box";
 import { AdminCard, AdminHeader, AdminTable, EmptyState, Pill, td, th } from "@/components/admin/ui";
 import { shortDateTime } from "@/lib/admin/queries.server";
-import { countryName } from "@/lib/countries";
+import { placeName } from "@/lib/countries";
 import { createClient } from "@/lib/supabase/server";
 import { formatDay } from "@/lib/template/format";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Companies" };
 
-const COLUMNS = "id, legal_name, country_code, registration_number, owner_id, archived_at, suspended_at, suspended_reason, created_at, profiles(email, company_limit)";
+const COLUMNS = "id, legal_name, country_code, region_code, registration_number, owner_id, archived_at, suspended_at, suspended_reason, created_at, profiles(email, company_limit)";
 
 /** Letters, digits, spaces and . @ - only: the query goes into a PostgREST filter. */
 const cleanQuery = (value: unknown) => (typeof value === "string" ? value.replace(/[^\p{L}\p{N}@.\- ]/gu, "").trim().slice(0, 80) : "");
@@ -72,7 +72,7 @@ export default async function AdminCompaniesPage({ searchParams }: PageProps<"/a
                           {company.legal_name}
                         </Link>
                         <p className="text-[13px] text-ink-2">
-                          {countryName(company.country_code)} · {company.registration_number}
+                          {placeName(company.country_code, company.region_code)} · {company.registration_number}
                         </p>
                       </td>
                       <td className={`${td} break-all`}>{company.profiles?.email}</td>
@@ -133,7 +133,7 @@ async function CompanyDetail({ id }: { id: string }) {
       <div>
         <h2 className="text-xl font-semibold">{company.legal_name}</h2>
         <p className="text-sm text-ink-2">
-          {countryName(company.country_code)} · {company.registration_number} · added {formatDay(company.created_at)}
+          {placeName(company.country_code, company.region_code)} · {company.registration_number} · added {formatDay(company.created_at)}
         </p>
       </div>
       {open ? (

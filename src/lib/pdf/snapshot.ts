@@ -12,6 +12,8 @@ export type IssuedSnapshot = {
   date: string;
   context: LetterContext;
   state: LetterState;
+  /** The wording in the country's own language (German for Germany), issued as a second PDF. The English prevails. */
+  translation?: LetterContext;
 };
 
 /** JSON with object keys sorted at every level, so equal content always gives the same text (and hash). */

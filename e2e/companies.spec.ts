@@ -75,6 +75,36 @@ test("a company saves without a contact phone or email; required fields are mark
   await expect(page.getByRole("heading", { name: "Quiet Studio Ltd" })).toBeVisible();
 });
 
+test("US and Canadian companies give their state or province, which their letters use", async ({ page }) => {
+  await signInAsNewUser(page, "company-state");
+  await page.getByRole("link", { name: "Add company" }).first().click();
+  const form = drawer(page);
+  await form.getByLabel("Legal name").fill("Sample Analytics Inc.");
+  await form.getByLabel("Country of registration").selectOption({ label: "Germany" });
+  await expect(form.getByLabel("State", { exact: true })).toHaveCount(0);
+  await form.getByLabel("Country of registration").selectOption({ label: "Canada" });
+  await expect(form.getByLabel("Province or territory", { exact: true })).toBeVisible();
+  await form.getByLabel("Province or territory", { exact: true }).selectOption({ label: "Ontario" });
+  // Changing the country clears a province that isn't in it.
+  await form.getByLabel("Country of registration").selectOption({ label: "United States" });
+  await expect(form.getByLabel("State", { exact: true })).toHaveValue("");
+  await expect(form.locator(`label[for="company-region-code"] + span`)).toHaveText("*");
+  await form.getByLabel("Registration number").fill("EIN 12-3456789");
+  await form.getByLabel("Registered address").fill("1 Market Street, San Francisco, CA 94105");
+  await form.getByLabel("Name", { exact: true }).fill("Jamie Lee");
+  await form.getByLabel("Job title").fill("Head of People");
+  await form.getByRole("button", { name: "Save company" }).click();
+  await expect(form.getByRole("alert").filter({ hasText: "to fix before saving" })).toContainText("State: Choose the state where the company is based");
+
+  await form.getByLabel("State", { exact: true }).selectOption({ label: "California" });
+  await form.getByRole("button", { name: "Save company" }).click();
+  await expect(drawer(page)).toBeHidden();
+  await expect(card(page, "Sample Analytics Inc.").getByText("United States, California", { exact: false }).filter({ visible: true })).toBeVisible();
+
+  await page.goto("/letters/new");
+  await expect(page.getByText("Letters use United States, California wording", { exact: false })).toBeVisible();
+});
+
 test("editing keeps the details, darkens a light brand colour and stores a logo", async ({ page, isMobile }) => {
   const { userId } = await signInAsNewUser(page, "edit-company");
   const [company] = await seedCompanies(userId, ["Sample Analytics Inc."]);

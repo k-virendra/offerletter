@@ -14,7 +14,8 @@ import type { AdminResult } from "@/lib/admin/auth";
 import { buildLetterDocument } from "@/lib/letter/build";
 import { EXAMPLE_ENGINEERING } from "@/lib/letter/samples";
 import type { FieldValues, LetterContext } from "@/lib/letter/types";
-import { checkClause, type ClauseField } from "@/lib/template/clause-check";
+import { languageName } from "@/lib/letter/translation";
+import { checkClause, translationMismatch, type ClauseField } from "@/lib/template/clause-check";
 import { todayIso } from "@/lib/template/format";
 import { cn } from "@/lib/utils";
 
@@ -31,6 +32,8 @@ type ClauseData = {
   sectionTitle: string;
   jurisdictionCode: string;
   jurisdictionLabel: string;
+  /** "en", or the language of a translation ("de"). */
+  language: string;
   version: number;
   status: Status;
   title: string;
@@ -57,6 +60,7 @@ export function ClauseEditor({
   context,
   sampleValues,
   history,
+  translationOf,
 }: {
   clause: ClauseData;
   isLatest: boolean;
@@ -65,6 +69,8 @@ export function ClauseEditor({
   context: LetterContext | null;
   sampleValues: FieldValues;
   history: ClauseHistoryEntry[];
+  /** For a translation: the latest English clause it must match. */
+  translationOf?: { version: number; body: string };
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -78,7 +84,13 @@ export function ClauseEditor({
   const set = (key: keyof typeof values) => (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setValues((current) => ({ ...current, [key]: event.target.type === "checkbox" ? (event.target as HTMLInputElement).checked : event.target.value }));
 
-  const check = useMemo(() => checkClause(values.body, { sectionKey: clause.sectionKey, fields, chain }), [values.body, clause.sectionKey, fields, chain]);
+  const check = useMemo(() => {
+    const result = checkClause(values.body, { sectionKey: clause.sectionKey, fields, chain });
+    // A translation prints the same values and tests the same answers as the English clause.
+    const mismatch = clause.language === "en" ? null : translationOf ? translationMismatch(translationOf.body, values.body) : "there’s no English clause to translate";
+    return mismatch ? { ...result, errors: [...result.errors, `Compared with English version ${translationOf?.version ?? "–"}: ${mismatch}`] } : result;
+  }, [values.body, clause.sectionKey, clause.language, fields, chain, translationOf]);
+  const translation = clause.language === "en" ? null : languageName(clause.language, "en");
 
   // The section as it prints in a sample letter for this country, with this text in place of the current one.
   const preview = useMemo(() => {
@@ -126,10 +138,10 @@ export function ClauseEditor({
 
   const newVersion = () =>
     start(async () => {
-      const result = await createClauseVersion(clause.sectionKey, clause.jurisdictionCode);
+      const result = await createClauseVersion(clause.sectionKey, clause.jurisdictionCode, clause.language);
       if (!result.ok) return toast(result.message);
       toast(`Version ${clause.version + 1} started as a draft.`);
-      router.push(`/admin/clauses?${new URLSearchParams({ country: clause.jurisdictionCode, status: "all", id: result.id })}`);
+      router.push(`/admin/clauses?${new URLSearchParams({ country: clause.jurisdictionCode, status: "all", lang: clause.language, id: result.id })}`);
     });
 
   const current = STEPS.findIndex((step) => step.status === clause.status);
@@ -143,10 +155,17 @@ export function ClauseEditor({
         <Pill tone="success" className="bg-white ring-1 ring-evergreen-600">
           {clause.jurisdictionLabel} · {clause.jurisdictionCode}
         </Pill>
+        {translation ? <Pill tone="neutral">{translation} translation</Pill> : null}
         <Pill tone={REVIEW_LABELS[clause.status].tone}>
           Version {clause.version} · {REVIEW_LABELS[clause.status].text}
         </Pill>
       </div>
+      {translation ? (
+        <p className="-mt-2 text-[13px] text-ink-2">
+          Translates English version {translationOf?.version ?? "–"} of this section, with the same placeholders and conditions. Paid letters come with the {translation}{" "}
+          translation once every section has an approved one; the English version prevails. Whether the section is required comes from the English clause.
+        </p>
+      ) : null}
 
       <ol aria-label="Review progress" className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
         {STEPS.map((step, index) => (
@@ -177,7 +196,7 @@ export function ClauseEditor({
         <Field id="clause-title" label="Heading in the letter" help={`Leave empty to use “${clause.sectionTitle}”.`}>
           <Input id="clause-title" value={values.title} maxLength={120} onChange={set("title")} readOnly={!editable} />
         </Field>
-        <div className="flex flex-col gap-2">
+        <div className={cn("flex flex-col gap-2", translation && "hidden")}>
           <label className="flex min-h-11 items-center gap-2.5 text-sm">
             <input type="checkbox" checked={values.locked} onChange={set("locked")} disabled={!editable} className="size-5 accent-evergreen-600" />
             Required in this country (users can’t remove it)

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { getUser, requireUser } from "@/lib/auth";
 import { correctionDaysLeft } from "@/lib/letter/letters.server";
 import { formatMoney } from "@/lib/payments/prices.server";
+import { languageName } from "@/lib/letter/translation";
 import { versionInputs } from "@/lib/pdf/inputs.server";
 import { fingerprint } from "@/lib/pdf/snapshot";
 import { createClient } from "@/lib/supabase/server";
@@ -41,7 +42,11 @@ export default async function LetterPage({ params }: PageProps<"/letters/[id]">)
   if (letter.status === "draft") redirect(`/letters/${id}/edit`);
 
   const [{ data: versions }, { data: payment }] = await Promise.all([
-    supabase.from("letter_versions").select("id, version, content_hash, pdf_path, note, created_at").eq("letter_id", id).order("version", { ascending: false }),
+    supabase
+      .from("letter_versions")
+      .select("id, version, content_hash, pdf_path, translated_pdf_path, language:snapshot->translation->>language, note, created_at")
+      .eq("letter_id", id)
+      .order("version", { ascending: false }),
     supabase
       .from("payments")
       .select("txnid, status, amount_minor, currency, display_amount_minor, display_currency, verified_at, created_at")
@@ -53,6 +58,8 @@ export default async function LetterPage({ params }: PageProps<"/letters/[id]">)
   ]);
   const latest = versions?.[0];
   const inputs = latest ? await versionInputs(latest.id) : null;
+  // A German or Dutch letter also comes translated; the PDFs are recorded together.
+  const translation = latest?.language ? languageName(latest.language, "en") : null;
 
   const refunded = payment?.status === "refunded";
   const until = letter.correction_until ? new Date(letter.correction_until) : null;
@@ -83,6 +90,14 @@ export default async function LetterPage({ params }: PageProps<"/letters/[id]">)
               </Link>
             </Button>
           ) : null}
+          {latest?.pdf_path && translation && latest.translated_pdf_path ? (
+            <Button asChild variant="secondary">
+              <a href={`/api/letters/${id}/versions/${latest.version}/pdf?lang=${latest.language}`}>
+                <Download aria-hidden />
+                {translation} translation
+              </a>
+            </Button>
+          ) : null}
           {latest?.pdf_path ? (
             <Button asChild>
               <a href={`/api/letters/${id}/versions/${latest.version}/pdf`}>
@@ -93,6 +108,11 @@ export default async function LetterPage({ params }: PageProps<"/letters/[id]">)
           ) : null}
         </div>
       </div>
+      {translation ? (
+        <p className="-mt-3 text-[13px] text-ink-2">
+          The letter comes in English and {translation}, both included. The English version prevails; the {translation} translation says so on every page.
+        </p>
+      ) : null}
 
       {!latest?.pdf_path ? (
         <section role="status" className="flex items-start gap-3 rounded-xl border border-info bg-info-50 px-5 py-4 text-sm text-info">
@@ -168,12 +188,25 @@ export default async function LetterPage({ params }: PageProps<"/letters/[id]">)
                     </p>
                   </div>
                   {version.pdf_path ? (
-                    <Button asChild variant="ghost" className="text-evergreen-600">
-                      <a href={`/api/letters/${id}/versions/${version.version}/pdf`} aria-label={`Download version ${version.version}`}>
-                        <Download aria-hidden />
-                        PDF
-                      </a>
-                    </Button>
+                    <div className="flex flex-col items-end">
+                      <Button asChild variant="ghost" className="text-evergreen-600">
+                        <a href={`/api/letters/${id}/versions/${version.version}/pdf`} aria-label={`Download version ${version.version}`}>
+                          <Download aria-hidden />
+                          PDF
+                        </a>
+                      </Button>
+                      {version.language && version.translated_pdf_path ? (
+                        <Button asChild variant="ghost" className="text-evergreen-600">
+                          <a
+                            href={`/api/letters/${id}/versions/${version.version}/pdf?lang=${version.language}`}
+                            aria-label={`Download version ${version.version} in ${languageName(version.language, "en")}`}
+                          >
+                            <Download aria-hidden />
+                            {languageName(version.language, "en")}
+                          </a>
+                        </Button>
+                      ) : null}
+                    </div>
                   ) : (
                     <span className="text-xs text-muted">Preparing…</span>
                   )}

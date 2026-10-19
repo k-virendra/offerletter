@@ -11,14 +11,14 @@ import { verifyRenderToken } from "@/lib/pdf/token";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Letter", robots: { index: false, follow: false } };
 
-const WATERMARK = "Preview – not valid";
+const WATERMARK: Record<string, string> = { en: "Preview – not valid", de: "Vorschau – nicht gültig", nl: "Voorbeeld – niet geldig" };
 
 export default async function RenderPage({ params }: PageProps<"/render/[token]">) {
   const { token } = await params;
   const target = verifyRenderToken(decodeURIComponent(token), serverEnv().RENDER_TOKEN_SECRET);
   if (!target) notFound();
 
-  const inputs = target.kind === "draft" ? await draftInputs(target.id) : await versionInputs(target.id);
+  const inputs = target.kind === "draft" ? await draftInputs(target.id, target.language) : await versionInputs(target.id, target.language);
   if (!inputs) notFound();
 
   return (
@@ -27,7 +27,7 @@ export default async function RenderPage({ params }: PageProps<"/render/[token]"
       company={inputs.company}
       state={inputs.state}
       date={inputs.date}
-      watermark={target.watermark ? WATERMARK : undefined}
+      watermark={target.watermark ? (WATERMARK[target.language ?? "en"] ?? WATERMARK.en) : undefined}
     />
   );
 }

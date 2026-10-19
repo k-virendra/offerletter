@@ -1,6 +1,7 @@
 import "server-only";
 import { receiptEmail } from "@/lib/email/receipt";
 import { sendEmail } from "@/lib/email/send.server";
+import { languageName } from "@/lib/letter/translation";
 import { appUrl } from "@/lib/payu/gateway.server";
 import { issueLetterVersion, type IssuedVersion } from "@/lib/pdf/issue.server";
 import type { IssuedCompany, IssuedSnapshot } from "@/lib/pdf/snapshot";
@@ -73,7 +74,9 @@ async function sendReceiptOnce(paymentId: string) {
     .update({ receipt_sent_at: new Date().toISOString() })
     .eq("id", paymentId)
     .is("receipt_sent_at", null)
-    .select("id, txnid, billing, amount_minor, currency, display_amount_minor, display_currency, verified_at, letters(id, name, correction_until, companies(legal_name))")
+    .select(
+      "id, txnid, billing, amount_minor, currency, display_amount_minor, display_currency, verified_at, language:letter_snapshot->translation->>language, letters(id, name, correction_until, companies(legal_name))",
+    )
     .maybeSingle();
   if (!claimed?.letters) return;
 
@@ -96,6 +99,7 @@ async function sendReceiptOnce(paymentId: string) {
       letterUrl: `${appUrl()}/letters/${claimed.letters.id}`,
       receiptUrl: `${appUrl()}/receipts/${claimed.txnid}`,
       correctionsUntil: day(claimed.letters.correction_until),
+      translation: claimed.language ? languageName(claimed.language, "en") : null,
     }),
   );
   if (!sent) await db.from("payments").update({ receipt_sent_at: null }).eq("id", paymentId);

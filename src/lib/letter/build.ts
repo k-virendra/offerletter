@@ -157,7 +157,7 @@ export function buildLetterDocument(context: LetterContext, company: LetterCompa
     const value = values[key];
     // Shown outside an {{#if}}, an empty value is a gap in the letter, so it's a chip even for optional fields.
     if (value === undefined || isEmptyValue(value)) return [{ kind: "missing", field: key, label: field.label }];
-    if (typeof value === "boolean") return [{ kind: "value", text: value ? "Yes" : "No", field: key }];
+    if (typeof value === "boolean") return [{ kind: "value", text: value ? phrases["value.yes"] || "Yes" : phrases["value.no"] || "No", field: key }];
     return [{ kind: "value", text: formatValue(field, value.trim(), exact), field: key }];
   };
 
@@ -218,6 +218,8 @@ export function buildLetterDocument(context: LetterContext, company: LetterCompa
   const date = formatDate(options.date, locale);
   const phrase = (key: string) => phrases[key] ?? "";
   const titleLabel = context.clauses.candidate?.title || phrase("title") || "Offer of employment";
+  const language = context.language ?? "en";
+  const feeLine = phraseText(phrase("fee_line") || "{{company}} never charges candidates fees.", { company: company.legalName });
 
   const keyFacts: LetterDocument["keyFacts"] = [
     { id: "role", label: phrase("facts.role"), value: placeholderRuns("position.job_title") },
@@ -281,9 +283,11 @@ export function buildLetterDocument(context: LetterContext, company: LetterCompa
     },
     keyFacts,
     runningHeader: [{ kind: "text", text: `${titleLabel} · ` }, ...candidateName],
-    feeLine: phraseText(phrase("fee_line") || "{{company}} never charges candidates fees.", { company: company.legalName }),
+    // A translation says on every page that the English version prevails.
+    feeLine: language !== "en" && phrase("translation_notice") ? `${feeLine} · ${phrase("translation_notice")}` : feeLine,
     addressedTo: phraseRuns(phrase("addressed_to"), { candidate: candidateName, date }),
     phrases,
+    language,
     unreviewed,
   };
 }

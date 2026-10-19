@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { normalizeHex } from "@/lib/color";
-import { COUNTRY_CODES } from "@/lib/countries";
+import { COUNTRY_CODES, REGIONS } from "@/lib/countries";
 
 // One schema for the company form, used by the browser (react-hook-form) and again by the server action.
 // Messages follow the validation catalogue on the design canvas.
@@ -90,19 +90,35 @@ const brandColor = z
     return hex;
   });
 
-export const companySchema = z.object({
-  legal_name: requiredText(200, "Enter the company’s legal name"),
-  trading_name: optionalText(200),
-  country_code: z.enum(COUNTRY_CODES, { message: "Choose the country where the company is registered" }),
-  registration_number: requiredText(100, "Enter the registration number, like HRB 123456"),
-  registered_address: requiredText(500, "Enter the registered address"),
-  website,
-  contact_phone: contactPhone,
-  contact_email: contactEmail,
-  brand_color: brandColor,
-  signatory_name: requiredText(120, "Enter the name of the person who signs letters"),
-  signatory_title: requiredText(120, "Enter the signatory’s job title"),
-});
+export const companySchema = z
+  .object({
+    legal_name: requiredText(200, "Enter the company’s legal name"),
+    trading_name: optionalText(200),
+    country_code: z.enum(COUNTRY_CODES, { message: "Choose the country where the company is registered" }),
+    // US and Canadian companies also give their state or province: letters use its wording. Ignored elsewhere.
+    region_code: z
+      .string()
+      .trim()
+      .transform((value) => value || null),
+    registration_number: requiredText(100, "Enter the registration number, like HRB 123456"),
+    registered_address: requiredText(500, "Enter the registered address"),
+    website,
+    contact_phone: contactPhone,
+    contact_email: contactEmail,
+    brand_color: brandColor,
+    signatory_name: requiredText(120, "Enter the name of the person who signs letters"),
+    signatory_title: requiredText(120, "Enter the signatory’s job title"),
+  })
+  .superRefine((values, ctx) => {
+    const regions = REGIONS[values.country_code];
+    if (!regions) return;
+    const noun = regions.label === "State" ? "state" : "province or territory";
+    if (!values.region_code) ctx.addIssue({ code: "custom", path: ["region_code"], message: `Choose the ${noun} where the company is based` });
+    else if (!regions.options.some((region) => region.code === values.region_code)) {
+      ctx.addIssue({ code: "custom", path: ["region_code"], message: `Choose a ${noun} in ${values.country_code === "US" ? "the United States" : "Canada"}` });
+    }
+    // Checked alongside the other fields' errors, not only once they're fixed.
+  }, { when: (payload) => typeof payload.value === "object" && payload.value !== null });
 
 export type CompanyFormInput = z.input<typeof companySchema>;
 export type CompanyValues = z.output<typeof companySchema>;
@@ -114,6 +130,7 @@ export const EMPTY_COMPANY: CompanyFormInput = {
   legal_name: "",
   trading_name: "",
   country_code: "",
+  region_code: "",
   registration_number: "",
   registered_address: "",
   website: "",
@@ -139,6 +156,11 @@ export function companyInputFromFormData(formData: FormData): CompanyFormInput {
     input[key] = typeof value === "string" ? value : "";
   }
   return input;
+}
+
+/** What's saved: a state or province only for countries that ask for one. */
+export function companyRow(values: CompanyValues): CompanyValues {
+  return { ...values, region_code: REGIONS[values.country_code] ? values.region_code : null };
 }
 
 /** Field errors as one message per field, the shape the form shows. */

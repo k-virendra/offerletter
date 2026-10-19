@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { getUser } from "@/lib/auth";
+import { languageName } from "@/lib/letter/translation";
 import { draftInputs } from "@/lib/pdf/inputs.server";
 import { letterMetadata } from "@/lib/pdf/issue.server";
 import { renderLetterPdf } from "@/lib/pdf/render.server";
@@ -7,17 +8,18 @@ import { contentDisposition, messagePage, pdfFileName } from "@/lib/pdf/response
 import { clientKey, takeRateLimit } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
 
-// "Preview PDF": the draft as it's saved now, printed with a PREVIEW – NOT VALID watermark. Rate-limited, because
-// every preview starts a browser page on the server.
+// "Preview PDF": the draft as it's saved now, printed with a PREVIEW – NOT VALID watermark, in English or (?lang=de)
+// its translation. Rate-limited, because every preview starts a browser page on the server.
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-export async function GET(_request: Request, { params }: RouteContext<"/api/letters/[id]/preview-pdf">) {
+export async function GET(request: Request, { params }: RouteContext<"/api/letters/[id]/preview-pdf">) {
   const { id } = await params;
   const user = await getUser();
   if (!user) return messagePage(401, "Sign in to preview this letter", "Your session has ended. Sign in again, then open the preview from the editor.");
-  if (!z.uuid().safeParse(id).success) return messagePage(404, "Letter not found", "This preview link doesn’t match a letter.");
+  const language = new URL(request.url).searchParams.get("lang") ?? "en";
+  if (!z.uuid().safeParse(id).success || !/^[a-z]{2}$/.test(language)) return messagePage(404, "Letter not found", "This preview link doesn’t match a letter.");
 
   // RLS: only the author can read the letter.
   const supabase = await createClient();
@@ -29,15 +31,18 @@ export async function GET(_request: Request, { params }: RouteContext<"/api/lett
     return messagePage(429, "Too many previews for now", "You’ve made a lot of previews in a short time. Wait a few minutes, then try again.");
   }
 
-  const inputs = await draftInputs(id);
+  const inputs = await draftInputs(id, language);
+  if (!inputs && language !== "en") {
+    return messagePage(409, "There’s no translation to preview", "The translation doesn’t cover every section of this letter yet, so only the English version is issued.");
+  }
   if (!inputs) return messagePage(409, "This letter can’t be previewed right now", "Letters for its country have been switched off while their wording is updated.");
 
   try {
-    const pdf = await renderLetterPdf({ kind: "draft", id, watermark: true }, letterMetadata(inputs, true));
+    const pdf = await renderLetterPdf({ kind: "draft", id, watermark: true, language }, letterMetadata(inputs, true));
     return new Response(Buffer.from(pdf), {
       headers: {
         "content-type": "application/pdf",
-        "content-disposition": contentDisposition("inline", pdfFileName(`${letter.name} (preview)`)),
+        "content-disposition": contentDisposition("inline", pdfFileName(`${letter.name}${language === "en" ? "" : ` (${languageName(language)})`} (preview)`)),
         "cache-control": "private, no-store",
         "x-robots-tag": "noindex",
       },

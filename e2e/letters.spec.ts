@@ -163,11 +163,10 @@ test("a first letter asks for the company and saves it for next time", async ({ 
 
 test("United States letters use US Letter paper and the state's wording", async ({ page, isMobile }) => {
   const { userId } = await signInAsNewUser(page, "us-letter", "/letters/new");
-  await seedCompanies(userId, ["Sample Analytics Inc."]);
+  await seedCompanies(userId, ["Sample Analytics Inc."], { country_code: "US", region_code: "US-NY" });
   await page.goto("/letters/new");
-  await page.getByLabel("Country", { exact: true }).selectOption({ label: "United States" });
-  await page.getByLabel("State", { exact: true }).selectOption({ label: "New York" });
-  await expect(page.getByText("US Letter paper")).toBeVisible();
+  await expect(page.getByText("Letters use United States, New York wording", { exact: false })).toBeVisible();
+  await expect(page.getByText("US Letter paper", { exact: false }).first()).toBeVisible();
   await page.getByRole("button", { name: "Continue to details" }).click();
   await page.waitForURL(/\/edit$/);
 
@@ -176,6 +175,25 @@ test("United States letters use US Letter paper and the state's wording", async 
   await showPreview(page, isMobile);
   await expect(preview(page)).toContainText("US Letter");
   await expect(preview(page)).toContainText("New York Labor Law");
+});
+
+test("a German letter previews in German too", async ({ page, isMobile }) => {
+  await startLetter(page);
+  await expect(form(page).getByText("English + German", { exact: true })).toBeVisible();
+  await expect(form(page).getByText("The paid letter comes in English and German, both included.", { exact: false })).toBeVisible();
+  await page.getByLabel("Full name", { exact: true }).fill("Lena Hoffmann");
+  await page.getByLabel("Job title", { exact: true }).fill("Senior Backend Engineer");
+
+  await showPreview(page, isMobile);
+  const language = page.getByRole("radiogroup", { name: "Preview language" });
+  await expect(language.getByRole("radio", { name: "English" })).toHaveAttribute("aria-checked", "true");
+  await language.getByRole("radio", { name: "German" }).click();
+  const firstPage = preview(page).getByRole("group", { name: /^Letter, page 1 of/ });
+  await expect(firstPage).toContainText("Arbeitsangebot");
+  await expect(firstPage).toContainText("Senior Backend Engineer");
+  await expect(preview(page)).toContainText("Your typed answers appear as you typed them");
+  await language.getByRole("radio", { name: "English" }).click();
+  await expect(firstPage).toContainText("Offer of employment");
 });
 
 test("an edit in another tab isn't overwritten", async ({ page, context }) => {

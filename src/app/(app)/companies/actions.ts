@@ -6,7 +6,7 @@ import { z } from "zod";
 import { getProfile, getUser } from "@/lib/auth";
 import { processLogo } from "@/lib/companies/logo";
 import { LOGO_BUCKET } from "@/lib/companies/queries";
-import { companyInputFromFormData, companySchema, firstFieldErrors, type CompanyField } from "@/lib/companies/schema";
+import { companyInputFromFormData, companyRow, companySchema, firstFieldErrors, type CompanyField } from "@/lib/companies/schema";
 import { takeRateLimit } from "@/lib/rate-limit";
 import { adminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -41,10 +41,11 @@ export async function saveCompany(formData: FormData): Promise<SaveCompanyResult
   if (logo && !logo.ok) return { ok: false, fieldErrors: { logo: logo.message } };
   const removeLogo = formData.get("remove_logo") === "true";
 
+  const values = companyRow(parsed.data);
   const supabase = await createClient();
   const saved = existingId
-    ? await supabase.from("companies").update(parsed.data).eq("id", existingId.data).eq("owner_id", user.id).select("id, legal_name, logo_path").maybeSingle()
-    : await supabase.from("companies").insert({ ...parsed.data, owner_id: user.id }).select("id, legal_name, logo_path").single();
+    ? await supabase.from("companies").update(values).eq("id", existingId.data).eq("owner_id", user.id).select("id, legal_name, logo_path").maybeSingle()
+    : await supabase.from("companies").insert({ ...values, owner_id: user.id }).select("id, legal_name, logo_path").single();
 
   if (saved.error || !saved.data) {
     if (saved.error?.message === "company_limit_reached") {

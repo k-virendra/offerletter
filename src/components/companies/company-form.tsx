@@ -17,12 +17,13 @@ import {
   type CompanyFormInput,
   type CompanyValues,
 } from "@/lib/companies/schema";
-import type { CountryOption } from "@/lib/countries";
+import { REGIONS, type CountryOption } from "@/lib/countries";
 import { cn } from "@/lib/utils";
 
-export type EditableCompany = Omit<CompanyFormInput, "trading_name" | "website" | "brand_color" | "contact_phone" | "contact_email"> & {
+export type EditableCompany = Omit<CompanyFormInput, "trading_name" | "region_code" | "website" | "brand_color" | "contact_phone" | "contact_email"> & {
   id: string;
   trading_name: string | null;
+  region_code: string | null;
   website: string | null;
   brand_color: string | null;
   contact_phone: string | null;
@@ -36,6 +37,7 @@ const LABELS: Record<CompanyField | "logo", string> = {
   legal_name: "Legal name",
   trading_name: "Trading name",
   country_code: "Country of registration",
+  region_code: "State or province",
   registration_number: "Registration number",
   registered_address: "Registered address",
   website: "Website",
@@ -134,6 +136,14 @@ export function CompanyForm({
     ...fieldControlProps(fieldId(name), { error: errors[name]?.message, help }),
   });
 
+  // US and Canadian companies also give their state or province; letters use its wording.
+  const countryCode = useWatch({ control, name: "country_code" });
+  const regions = REGIONS[countryCode];
+  const regionCode = useWatch({ control, name: "region_code" });
+  useEffect(() => {
+    if (regionCode && regionCode.slice(0, 2) !== countryCode) setValue("region_code", "");
+  }, [countryCode, regionCode, setValue]);
+
   const brandColor = useWatch({ control, name: "brand_color" });
   const brandHex = normalizeHex(brandColor ?? "");
   const accent = brandHex ? readableAccent(brandHex) : null;
@@ -166,7 +176,7 @@ export function CompanyForm({
                 {allErrors.map((error) => (
                   <li key={error.key}>
                     <a href={`#${fieldId(error.key)}`} className="text-danger-700 underline underline-offset-2">
-                      {LABELS[error.key]}: {error.message}
+                      {error.key === "region_code" && regions ? regions.label : LABELS[error.key]}: {error.message}
                     </a>
                   </li>
                 ))}
@@ -202,6 +212,24 @@ export function CompanyForm({
               </optgroup>
             </Select>
           </Field>
+          {regions ? (
+            <Field
+              id={fieldId("region_code")}
+              label={regions.label}
+              required
+              help="Offer letters use its employment rules."
+              error={errors.region_code?.message}
+            >
+              <Select {...field("region_code", "Offer letters use its employment rules.")} autoComplete="address-level1">
+                <option value="">Choose a {regions.label === "State" ? "state" : "province or territory"}</option>
+                {regions.options.map((region) => (
+                  <option key={region.code} value={region.code}>
+                    {region.name}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          ) : null}
           <Field id={fieldId("registration_number")} label={LABELS.registration_number} required error={errors.registration_number?.message}>
             <Input {...field("registration_number")} />
           </Field>

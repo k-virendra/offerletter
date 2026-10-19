@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { companyInputFromFormData, companySchema, firstFieldErrors, logoFileError, normalizeWebsite, type CompanyFormInput } from "./schema";
+import { companyInputFromFormData, companyRow, companySchema, firstFieldErrors, logoFileError, normalizeWebsite, type CompanyFormInput } from "./schema";
 
 const valid: CompanyFormInput = {
   legal_name: "Example Engineering GmbH",
   trading_name: "",
   country_code: "DE",
+  region_code: "",
   registration_number: "HRB 000000",
   registered_address: "Musterstraße 1, 80331 München",
   website: "example-engineering.test",
@@ -52,6 +53,21 @@ describe("companySchema", () => {
     const company = companySchema.parse({ ...valid, contact_phone: " ", contact_email: "" });
     expect(company.contact_phone).toBeNull();
     expect(company.contact_email).toBeNull();
+  });
+
+  it("asks US and Canadian companies for their state or province", () => {
+    expect(errorsFor({ country_code: "US" })).toEqual({ region_code: "Choose the state where the company is based" });
+    expect(errorsFor({ country_code: "CA", region_code: "" })).toEqual({ region_code: "Choose the province or territory where the company is based" });
+    expect(errorsFor({ country_code: "US", region_code: "CA-ON" })).toEqual({ region_code: "Choose a state in the United States" });
+    expect(errorsFor({ country_code: "US", region_code: "US-CA" })).toEqual({});
+    expect(errorsFor({ country_code: "CA", region_code: "CA-MB" })).toEqual({});
+    // Reported with the other problems, not after them.
+    expect(errorsFor({ country_code: "US", legal_name: "" })).toEqual({ legal_name: "Enter the company’s legal name", region_code: "Choose the state where the company is based" });
+  });
+
+  it("keeps a state or province only for countries that ask for one", () => {
+    expect(companyRow(companySchema.parse({ ...valid, region_code: "US-CA" })).region_code).toBeNull();
+    expect(companyRow(companySchema.parse({ ...valid, country_code: "US", region_code: "US-TX" })).region_code).toBe("US-TX");
   });
 
   it("matches the database's own checks", () => {

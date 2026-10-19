@@ -1,7 +1,8 @@
 import "server-only";
 import { LOGO_BUCKET } from "@/lib/companies/queries";
 import { countryName } from "@/lib/countries";
-import { loadLetterContext } from "@/lib/letter/context.server";
+import { loadLetterContext, translatedWording } from "@/lib/letter/context.server";
+import { coveredTranslation } from "@/lib/letter/translation";
 import { COMPANY_FOR_LETTER, letterState, type CompanyRow } from "@/lib/letter/letters.server";
 import type { LetterCompany, LetterContext, LetterState } from "@/lib/letter/types";
 import { adminClient } from "@/lib/supabase/admin";
@@ -37,19 +38,26 @@ export function issuedCompany(row: CompanyRow): IssuedCompany {
   };
 }
 
+export type LetterWording = {
+  context: LetterContext;
+  date: string;
+  /** The same wording in the country's own language, if it has one; check it covers the letter with coveredTranslation. */
+  translation: LetterContext | null;
+};
+
 /**
  * The wording and date a letter is edited with. A draft uses its country's current wording and today's date. A paid
- * letter being corrected keeps the wording and date its latest version was issued with: a correction fixes the
- * answers, never the clauses.
+ * letter being corrected keeps the wording, translation and date its latest version was issued with: a correction
+ * fixes the answers, never the clauses.
  */
-export async function letterWording(letter: { id: string; status: string; current_version: number; jurisdiction_code: string }): Promise<{ context: LetterContext; date: string } | null> {
+export async function letterWording(letter: { id: string; status: string; current_version: number; jurisdiction_code: string }): Promise<LetterWording | null> {
   if (letter.status === "paid" && letter.current_version > 0) {
     const { data } = await adminClient().from("letter_versions").select("snapshot").eq("letter_id", letter.id).eq("version", letter.current_version).maybeSingle();
     const snapshot = data?.snapshot as unknown as IssuedSnapshot | undefined;
-    return snapshot?.schema === 1 ? { context: snapshot.context, date: snapshot.date } : null;
+    return snapshot?.schema === 1 ? { context: snapshot.context, date: snapshot.date, translation: snapshot.translation ?? null } : null;
   }
   const context = await loadLetterContext(letter.jurisdiction_code);
-  return context ? { context, date: todayIso() } : null;
+  return context ? { context, date: todayIso(), translation: await translatedWording(context) } : null;
 }
 
 async function loadDraft(letterId: string) {
@@ -64,21 +72,24 @@ async function loadDraft(letterId: string) {
   return { letter, ...wording, company: issuedCompany(letter.companies) };
 }
 
-/** A draft (or a correction in progress) as it is now, for a watermarked preview. */
-export async function draftInputs(letterId: string): Promise<PrintInputs | null> {
+/** A draft (or a correction in progress) as it is now, for a watermarked preview, in English or its translation. */
+export async function draftInputs(letterId: string, language = "en"): Promise<PrintInputs | null> {
   const draft = await loadDraft(letterId);
   if (!draft) return null;
+  const state = letterState(draft.letter);
+  const context = language === "en" ? draft.context : coveredTranslation(draft.context, draft.translation, state.removedSections);
+  if (!context || (context.language ?? "en") !== language) return null;
   return {
-    context: draft.context,
-    state: letterState(draft.letter),
+    context,
+    state,
     company: { ...draft.company, logo: await signedLogo(draft.company.logo) },
     date: draft.date,
     name: draft.letter.name,
   };
 }
 
-/** An issued version, exactly as it was frozen. */
-export async function versionInputs(versionId: string): Promise<PrintInputs | null> {
+/** An issued version, exactly as it was frozen: in English, or in the translation issued with it. */
+export async function versionInputs(versionId: string, language = "en"): Promise<PrintInputs | null> {
   const { data: version } = await adminClient()
     .from("letter_versions")
     .select("id, snapshot, company_snapshot, letters(name)")
@@ -88,8 +99,10 @@ export async function versionInputs(versionId: string): Promise<PrintInputs | nu
   const snapshot = version.snapshot as unknown as IssuedSnapshot;
   const company = version.company_snapshot as unknown as IssuedCompany;
   if (snapshot.schema !== 1) return null;
+  const context = language === "en" ? snapshot.context : snapshot.translation;
+  if (!context || (context.language ?? "en") !== language) return null;
   return {
-    context: snapshot.context,
+    context,
     state: snapshot.state,
     company: { ...company, logo: await signedLogo(company.logo) },
     date: snapshot.date,
@@ -101,6 +114,8 @@ export async function versionInputs(versionId: string): Promise<PrintInputs | nu
 export async function snapshotDraft(letterId: string) {
   const draft = await loadDraft(letterId);
   if (!draft) return null;
-  const snapshot: IssuedSnapshot = { schema: 1, date: draft.date, context: draft.context, state: letterState(draft.letter) };
+  const state = letterState(draft.letter);
+  const translation = coveredTranslation(draft.context, draft.translation, state.removedSections);
+  const snapshot: IssuedSnapshot = { schema: 1, date: draft.date, context: draft.context, state, ...(translation ? { translation } : {}) };
   return { snapshot, company: draft.company, letter: draft.letter };
 }

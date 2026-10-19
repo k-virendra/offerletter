@@ -1,5 +1,6 @@
 import { loadContent } from "../../../scripts/content";
 import { resolveClauses, resolveFields, resolvePhrases, type ClauseRow } from "./resolve";
+import { translateContext } from "./translation";
 import type { LetterContext } from "./types";
 
 // Test helpers: a LetterContext built straight from content/ (as the server would after seeding, with draft
@@ -21,20 +22,7 @@ export function chainFor(code: string): { code: string; name: string }[] {
 export function contextFor(code: string, { allowUnreviewed = true, approve = false } = {}): LetterContext {
   const chain = chainFor(code);
   const jurisdiction = content.jurisdictions.find((j) => j.code === code)!;
-  const clauseRows: ClauseRow[] = content.clauseFiles.flatMap(({ content: file }) =>
-    file.clauses.map((clause, index) => ({
-      id: `${file.jurisdiction}-${clause.section}-${index}`,
-      section_key: clause.section,
-      jurisdiction_code: file.jurisdiction,
-      title: clause.title ?? null,
-      body: clause.body,
-      locked: clause.locked,
-      locked_reason: clause.locked_reason ?? null,
-      editor_help: clause.editor_help ?? null,
-      review_status: approve ? "approved" : "draft",
-      version: clause.version,
-    })),
-  );
+  const clauseRows: ClauseRow[] = clauseRowsFor("en", approve);
   const phraseRows = [
     ...Object.entries(content.phrases.defaults).map(([key, text]) => ({ key, jurisdiction_code: null, text })),
     ...Object.entries(content.phrases.overrides).flatMap(([c, phrases]) => Object.entries(phrases).map(([key, text]) => ({ key, jurisdiction_code: c, text }))),
@@ -47,6 +35,7 @@ export function contextFor(code: string, { allowUnreviewed = true, approve = fal
       currency: jurisdiction.currency,
       locale: jurisdiction.locale,
       paperSize: jurisdiction.paper_size,
+      ...(jurisdiction.translation ? { translation: jurisdiction.translation } : {}),
     },
     sections: content.sections
       .map((s) => ({
@@ -82,6 +71,38 @@ export function contextFor(code: string, { allowUnreviewed = true, approve = fal
     templates: content.templates.map((t) => ({ key: t.key, name: t.name, description: t.description, defaultAccent: t.default_accent })),
     phrases: resolvePhrases(phraseRows, chain),
   };
+}
+
+/** A jurisdiction's translated wording (Germany: German), as the server builds it from the same content. */
+export function translatedContextFor(code: string, { allowUnreviewed = true, approve = false } = {}): LetterContext {
+  const english = contextFor(code, { allowUnreviewed, approve });
+  const translation = english.jurisdiction.translation;
+  if (!translation) throw new Error(`${code} has no translation`);
+  const phrases = content.phrases.languages[translation.language] ?? {};
+  return translateContext(english, {
+    ...translation,
+    clauses: resolveClauses(clauseRowsFor(translation.language, approve), chainFor(code), allowUnreviewed),
+    phrases,
+  });
+}
+
+function clauseRowsFor(language: string, approve: boolean): ClauseRow[] {
+  return content.clauseFiles
+    .filter(({ content: file }) => file.language === language)
+    .flatMap(({ content: file }) =>
+      file.clauses.map((clause, index) => ({
+        id: `${file.jurisdiction}-${file.language}-${clause.section}-${index}`,
+        section_key: clause.section,
+        jurisdiction_code: file.jurisdiction,
+        title: clause.title ?? null,
+        body: clause.body,
+        locked: clause.locked,
+        locked_reason: clause.locked_reason ?? null,
+        editor_help: clause.editor_help ?? null,
+        review_status: approve ? "approved" : "draft",
+        version: clause.version,
+      })),
+    );
 }
 
 export { EXAMPLE_ENGINEERING, LENA_VALUES } from "./samples";

@@ -48,3 +48,21 @@ Rules the content tests enforce (`pnpm test`):
 
 `src/lib/letter/__snapshots__/country-packs.test.ts.snap` holds the text of a complete sample letter for every
 launch jurisdiction. After changing wording, run `pnpm test -u` and review the snapshot diff with the lawyer.
+
+## Translations
+
+Where a country's own language isn't English, paid letters also come translated, as a second PDF at no extra
+cost. The English version prevails, and the translation says so in its footer on every page. `translation` in
+`content/jurisdictions.yaml` names the language (Germany: `de`, the Netherlands: `nl`).
+
+- `<country>.<language>.yaml` (e.g. `de.de.yaml`) translates the country's English clauses with `language: de`.
+  Every section with an English clause needs a translation that prints the same placeholders and tests the same
+  conditions; the content tests check this, and so does the admin clause editor before saving or approving.
+- Locks and editor help come from the English clauses, so translations leave out `locked` and `editor_help`.
+- `letter-phrases.yaml` → `languages.<language>` translates the fixed wording: every default phrase, section
+  titles (`section.<key>`, optionally `section.<key>.short`), printed answers (`option.<field>.<value>`) and
+  `translation_notice`.
+- Text people type (job title, place of work, benefits…) appears as typed, so set free text off with a colon
+  rather than building a sentence around it.
+- Translations are reviewed like English clauses. A letter comes translated only when every section in it has an
+  approved translation (drafts count in local development); otherwise it's issued in English only.

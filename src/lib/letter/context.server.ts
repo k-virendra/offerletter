@@ -2,7 +2,9 @@ import "server-only";
 import { cache } from "react";
 import { allowUnreviewedClauses } from "@/lib/env.server";
 import { adminClient } from "@/lib/supabase/admin";
+import { letterJurisdiction, type LetterPlace } from "./jurisdiction";
 import { resolveClauses, resolveFields, resolvePhrases } from "./resolve";
+import { translateContext } from "./translation";
 import type { LetterContext } from "./types";
 
 // Reference data for letters. It's the same for every user, so it's read with the secret key, column by column
@@ -23,7 +25,10 @@ export type JurisdictionOption = {
   publicNote: string | null;
 };
 
-/** Countries and their states or provinces for the New letter screen. */
+/**
+ * Countries and their states or provinces, each saying whether letters can use it yet. Switched-off rows are listed
+ * as unavailable rather than left out, so a state that isn't ready never falls back to the national wording.
+ */
 export const listJurisdictions = cache(async (): Promise<JurisdictionOption[]> => {
   const db = adminClient();
   const unreviewed = allowUnreviewedClauses();
@@ -34,32 +39,35 @@ export const listJurisdictions = cache(async (): Promise<JurisdictionOption[]> =
   ]);
   const withOpening = new Set((openings ?? []).filter((c) => unreviewed || c.review_status === "approved").map((c) => c.jurisdiction_code));
   const byCode = new Map((rows ?? []).map((row) => [row.code, row]));
-  return (rows ?? [])
-    .filter((row) => row.enabled || unreviewed)
-    .map((row) => {
-      const hasWording = withOpening.has(row.code) || (row.parent_code !== null && withOpening.has(row.parent_code));
-      const parentEnabled = !row.parent_code || byCode.get(row.parent_code)?.enabled || unreviewed;
-      return {
-        code: row.code,
-        name: row.name,
-        parentCode: row.parent_code,
-        currency: row.currency,
-        locale: row.locale,
-        paperSize: row.paper_size,
-        selectable: row.selectable,
-        // A state or province that can't be chosen on its own (Quebec) says why in its note.
-        unavailable:
-          row.parent_code && !row.selectable
-            ? (row.public_note ?? "Not available yet")
-            : !parentEnabled
-              ? "Not available yet"
-              : hasWording
-                ? null
-                : "Wording for this country is still being written",
-        publicNote: row.public_note,
-      };
-    });
+  return (rows ?? []).map((row) => {
+    const hasWording = withOpening.has(row.code) || (row.parent_code !== null && withOpening.has(row.parent_code));
+    const enabled = (row.enabled && (!row.parent_code || byCode.get(row.parent_code)?.enabled)) || unreviewed;
+    return {
+      code: row.code,
+      name: row.name,
+      parentCode: row.parent_code,
+      currency: row.currency,
+      locale: row.locale,
+      paperSize: row.paper_size,
+      selectable: row.selectable,
+      // A state or province that can't be chosen on its own (Quebec) says why in its note.
+      unavailable:
+        row.parent_code && !row.selectable
+          ? (row.public_note ?? "Not available yet")
+          : !enabled
+            ? "Not available yet"
+            : hasWording
+              ? null
+              : "Wording for this country is still being written",
+      publicNote: row.public_note,
+    };
+  });
 });
+
+/** The wording a company's letters use, or why there is none (see letterJurisdiction). */
+export async function companyLetterPlace(company: { country_code: string; region_code: string | null }): Promise<LetterPlace> {
+  return letterJurisdiction(await listJurisdictions(), company.country_code, company.region_code);
+}
 
 /** Everything needed to build letters for one jurisdiction, or null when it can't be used. */
 export const loadLetterContext = cache((jurisdictionCode: string) => buildContext(jurisdictionCode, { unreviewed: allowUnreviewedClauses(), admin: false }));
@@ -77,7 +85,7 @@ async function buildContext(jurisdictionCode: string, { unreviewed, admin }: { u
   if (!chainCodes?.length) return null;
 
   const [jurisdictions, sections, clauses, fields, templates, phrases] = await Promise.all([
-    db.from("jurisdictions").select("code, name, currency, locale, paper_size, enabled, selectable").in("code", chainCodes),
+    db.from("jurisdictions").select("code, name, currency, locale, paper_size, enabled, selectable, translation_language, translation_locale").in("code", chainCodes),
     db.from("sections").select("key, default_title, short_title, default_order, always_included, show_heading, varies_by_country, help_text").order("default_order"),
     db
       .from("clause_variants")
@@ -107,6 +115,7 @@ async function buildContext(jurisdictionCode: string, { unreviewed, admin }: { u
       currency: own.currency,
       locale: own.locale,
       paperSize: own.paper_size,
+      ...(own.translation_language && own.translation_locale ? { translation: { language: own.translation_language, locale: own.translation_locale } } : {}),
     },
     sections: (sections.data ?? []).map((s) => ({
       key: s.key,
@@ -124,3 +133,49 @@ async function buildContext(jurisdictionCode: string, { unreviewed, admin }: { u
     phrases: resolvePhrases(phrases.data ?? [], chain),
   };
 }
+
+/**
+ * English wording turned into its country's own language (Germany: German), or null when the country has none. The
+ * same review rules as English wording apply: approved clauses only, drafts too in local development. It may not
+ * cover every section yet: see coveredTranslation.
+ */
+export async function translatedWording(english: LetterContext): Promise<LetterContext | null> {
+  const translation = english.jurisdiction.translation ? await loadTranslation(english.jurisdiction.code, allowUnreviewedClauses()) : null;
+  return translation ? translateContext(english, translation) : null;
+}
+
+/** For the admin clause library's previews of translated clauses: drafts count. Never use it for paid letters. */
+export const loadAdminPreviewTranslation = cache(async (jurisdictionCode: string): Promise<LetterContext | null> => {
+  const english = await loadAdminPreviewContext(jurisdictionCode);
+  const translation = english?.jurisdiction.translation ? await loadTranslation(jurisdictionCode, true) : null;
+  return english && translation ? translateContext(english, translation) : null;
+});
+
+const loadTranslation = cache(async (jurisdictionCode: string, unreviewed: boolean) => {
+  const db = adminClient();
+  const { data: own } = await db.from("jurisdictions").select("translation_language, translation_locale").eq("code", jurisdictionCode).maybeSingle();
+  const language = own?.translation_language;
+  if (!language || !own.translation_locale) return null;
+
+  const { data: chainCodes } = await db.rpc("jurisdiction_chain", { p_code: jurisdictionCode });
+  if (!chainCodes?.length) return null;
+  const [jurisdictions, clauses, phrases] = await Promise.all([
+    db.from("jurisdictions").select("code, name").in("code", chainCodes),
+    db
+      .from("clause_variants")
+      .select("id, section_key, jurisdiction_code, title, body, locked, locked_reason, editor_help, review_status, version")
+      .in("jurisdiction_code", chainCodes)
+      .eq("language", language),
+    db.from("letter_phrases").select("key, jurisdiction_code, text").eq("language", language).or(`jurisdiction_code.is.null,jurisdiction_code.in.(${chainCodes.join(",")})`),
+  ]);
+  for (const result of [jurisdictions, clauses, phrases]) {
+    if (result.error) throw new Error(`Letter translation couldn't be loaded: ${result.error.message}`);
+  }
+  const chain = chainCodes.map((code) => ({ code, name: jurisdictions.data?.find((j) => j.code === code)?.name ?? code }));
+  return {
+    language,
+    locale: own.translation_locale,
+    clauses: resolveClauses(clauses.data ?? [], chain, unreviewed),
+    phrases: resolvePhrases(phrases.data ?? [], chain),
+  };
+});

@@ -80,3 +80,28 @@ export function checkClause(body: string, { sectionKey, fields, chain, allowHtml
   const conditions = (body.match(/\{\{\s*#(if|unless)\b/g) ?? []).length;
   return { errors, placeholders: printed.size, conditions };
 }
+
+/**
+ * Why a translated clause doesn't match the English clause it translates, or null when it does: it must print the
+ * same values and test the same answers, so both versions of a letter say the same thing.
+ */
+export function translationMismatch(english: string, translation: string): string | null {
+  let original: TemplateNode[];
+  let translated: TemplateNode[];
+  try {
+    original = parseTemplate(english);
+    translated = parseTemplate(translation);
+  } catch (error) {
+    return (error as Error).message;
+  }
+  const differences = (a: Set<string>, b: Set<string>) => [...a].filter((key) => !b.has(key)).map((key) => `{{${key}}}`);
+  const printed = [printedKeys(original), printedKeys(translated)] as const;
+  const tested = [templateKeys(original), templateKeys(translated)] as const;
+  const missing = differences(printed[0], printed[1]);
+  if (missing.length) return `the translation leaves out ${missing.join(", ")}`;
+  const extra = differences(printed[1], printed[0]);
+  if (extra.length) return `the translation prints ${extra.join(", ")}, which the English clause doesn’t`;
+  const conditions = [...differences(tested[0], tested[1]), ...differences(tested[1], tested[0])];
+  if (conditions.length) return `the translation’s conditions differ from the English clause’s (${conditions.join(", ")})`;
+  return null;
+}

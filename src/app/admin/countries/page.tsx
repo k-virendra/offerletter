@@ -6,6 +6,7 @@ import { CountryStatus } from "@/components/admin/country-status";
 import { CountryNotesForm } from "@/components/admin/forms";
 import { AdminCard, AdminHeader, Pill } from "@/components/admin/ui";
 import { countryReadiness } from "@/lib/admin/queries.server";
+import { languageName } from "@/lib/letter/translation";
 
 export const metadata: Metadata = { title: "Countries" };
 
@@ -35,6 +36,20 @@ export default async function AdminCountriesPage() {
                   ) : (
                     <p className="mt-0.5 text-[13px] text-ink-2">People don’t pick it on its own: it holds wording its states or provinces share.</p>
                   )}
+                  {country.translation ? (
+                    <p className="mt-0.5 text-[13px] text-ink-2">
+                      {languageName(country.translation.language, "en")} translation:{" "}
+                      {country.translation.missing.length
+                        ? `paid letters come in English only until these sections have an approved translation: ${country.translation.missing.join(", ")}.`
+                        : "every section is approved, so paid letters also come translated."}{" "}
+                      <Link
+                        href={`/admin/clauses?country=${country.code}&status=all&lang=${country.translation.language}`}
+                        className="font-semibold text-evergreen-700 underline underline-offset-2"
+                      >
+                        Open the translation
+                      </Link>
+                    </p>
+                  ) : null}
                   {country.missing.length ? (
                     <Link href={`/admin/clauses?country=${country.code}&status=all`} className="mt-1 inline-block text-[13px] font-semibold text-evergreen-700 underline underline-offset-2">
                       Open its clauses

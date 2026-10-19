@@ -365,6 +365,83 @@ Yours sincerely,
 Example Engineering GmbH never charges candidates fees."
 `;
 
+exports[`DE translation > is complete and reads as expected 1`] = `
+"Arbeitsangebot: Senior Backend Engineer
+
+Munich, 16. Oktober 2026
+
+Guten Tag Lena,
+
+wir freuen uns sehr, Ihnen die Position Senior Backend Engineer in unserem Team Platform bei Example Engineering GmbH anzubieten. Dieses Schreiben fasst die wesentlichen Bedingungen unseres Angebots zusammen. Ihr Arbeitsvertrag wird diese und die übrigen Bedingungen schriftlich bestätigen.
+
+## Ihre Position und Ihr Beginn
+
+Sie berichten an Jonas Becker, Engineering Manager. Ihr Arbeitsverhältnis beginnt am 1. Dezember 2026.
+
+## Arbeitsort und Arbeitszeit
+
+Ihr Arbeitsort: our Munich office, with up to two days of remote work a week. Ihre regelmäßige Arbeitszeit beträgt 40 Stunden pro Woche, von Montag bis Freitag.
+
+## Gehalt
+
+Ihr jährliches Bruttogehalt beträgt 78.000 €. Es wird in 12 gleichen Raten jeweils zum Monatsende ausgezahlt.
+
+| Bestandteil | Bruttobetrag |
+| Jahresgehalt | 78.000,00 € |
+| Je Rate (12 pro Jahr) | 6.500,00 € |
+
+## Jährlicher Bonus
+
+Sie können einen jährlichen Bonus erhalten: up to 10% of your annual gross salary, based on targets agreed each year. Es gelten die Regeln des jeweils gültigen Bonusprogramms.
+
+## Probezeit
+
+Die ersten 6 Monate Ihres Arbeitsverhältnisses sind eine Probezeit. Während der Probezeit können beide Seiten das Arbeitsverhältnis mit einer Frist von zwei Wochen kündigen.
+
+## Urlaub
+
+Sie erhalten in jedem Kalenderjahr 28 Arbeitstage bezahlten Urlaub, bezogen auf eine Fünftagewoche. Darin ist Ihr gesetzlicher Mindesturlaub enthalten.
+
+## Kündigungsfristen
+
+Nach der Probezeit gelten die Kündigungsfristen des § 622 des Bürgerlichen Gesetzbuchs (BGB). Eine längere Kündigungsfrist, die für das Unternehmen gilt, gilt auch für Sie. Die Kündigung bedarf der Schriftform.
+
+## Betriebliche Altersversorgung
+
+Sie können einen Teil Ihres Gehalts nach dem Betriebsrentengesetz (BetrAVG) in eine betriebliche Altersversorgung umwandeln (Entgeltumwandlung). The company adds 20% to the amount you convert.
+
+## Zusatzleistungen
+
+Außerdem erhalten Sie: a monthly public transport allowance, a company pension contribution and a learning budget of €1,000 a year.
+
+## Unterstützung beim Umzug
+
+Zur Unterstützung Ihres Umzugs stellen wir Ihnen Folgendes zur Verfügung: a one-off relocation allowance of €3,000 gross.
+
+## Beratung für Beschäftigte aus Staaten außerhalb der EU
+
+Kostenlose und vertrauliche Beratung zu Ihren Rechten am Arbeitsplatz in Deutschland erhalten Sie in mehreren Sprachen bei der Beratungsstelle Faire Integration (www.faire-integration.de).
+
+## Schriftliche Arbeitsbedingungen
+
+Mit Ihrem Arbeitsvertrag erhalten Sie den Nachweis der wesentlichen Bedingungen Ihres Arbeitsverhältnisses, den das Nachweisgesetz vorschreibt.
+
+## Bedingungen dieses Angebots
+
+Dieses Angebot steht unter folgenden Bedingungen:
+
+- Sie weisen vor Ihrem Eintrittsdatum nach, dass Sie in Deutschland arbeiten dürfen
+- Referenzen, die das Unternehmen zufriedenstellen
+
+Bitte bestätigen Sie die Annahme dieses Angebots, indem Sie uns bis zum 30. Oktober 2026 eine unterschriebene Kopie dieses Schreibens zurücksenden. Wir freuen uns darauf, Sie in unserem Team willkommen zu heißen.
+
+Mit freundlichen Grüßen
+
+[Für Example Engineering GmbH] [Angenommen: Ich nehme dieses Angebot zu den oben genannten Bedingungen an.]
+
+Example Engineering GmbH erhebt von Bewerberinnen und Bewerbern keine Gebühren. · Übersetzung zur Information – maßgeblich ist die englische Fassung."
+`;
+
 exports[`GB > reads as expected 1`] = `
 "Offer of employment: Senior Backend Engineer
 
@@ -582,6 +659,79 @@ Yours sincerely,
 [For Example Engineering GmbH] [Accepted by the candidate: I accept this offer on the terms set out above.]
 
 Example Engineering GmbH never charges candidates fees."
+`;
+
+exports[`NL translation > is complete and reads as expected 1`] = `
+"Arbeidsaanbod: Senior Backend Engineer
+
+Munich, 16 oktober 2026
+
+Beste Lena,
+
+Met veel plezier bieden wij u de functie Senior Backend Engineer in ons team Platform aan bij Example Engineering GmbH. Deze brief beschrijft de belangrijkste voorwaarden van ons aanbod. Uw arbeidsovereenkomst bevestigt deze en de overige voorwaarden schriftelijk.
+
+## Uw functie en startdatum
+
+U rapporteert aan Jonas Becker, Engineering Manager. Uw dienstverband begint op 1 december 2026.
+
+## Werkplek en werktijden
+
+Uw werkplek: our Munich office, with up to two days of remote work a week. Uw werkweek bedraagt 40 uur.
+
+## Salaris
+
+Uw brutosalaris bedraagt € 78.000 per jaar en wordt maandelijks betaald. Daarnaast ontvangt u vakantiegeld van ten minste 8% van uw brutosalaris, elk jaar uitbetaald in mei.
+
+| Onderdeel | Brutobedrag |
+| Jaarsalaris (zonder vakantiegeld) | € 78.000,00 |
+| Per maandelijkse betaling | € 6.500,00 |
+
+## Jaarlijkse bonus
+
+U komt in aanmerking voor een jaarlijkse bonus: up to 10% of your annual gross salary, based on targets agreed each year. De regels van de dan geldende bonusregeling zijn van toepassing.
+
+## Proeftijd
+
+Uw dienstverband begint met een proeftijd van 2 maanden, die voor u en het bedrijf gelijk is. Tijdens de proeftijd kunnen beide partijen het dienstverband met onmiddellijke ingang beëindigen.
+
+## Vakantie en verlof
+
+U ontvangt 28 betaalde vakantiedagen per jaar, op basis van een volledige werkweek. Het wettelijk minimum is vier keer uw wekelijkse arbeidsduur.
+
+## Opzegtermijnen
+
+Na de proeftijd gelden bij beëindiging van het dienstverband de wettelijke opzegtermijnen uit het Burgerlijk Wetboek: één maand voor u, en één tot vier maanden voor het bedrijf, afhankelijk van hoe lang u bij ons werkt. De opzegging gaat in tegen het einde van een kalendermaand. Op de beëindiging van het dienstverband is het Nederlandse ontslagrecht van toepassing.
+
+## Pensioen
+
+U neemt deel aan de pensioenregeling van het bedrijf: the PMT sector pension fund.
+
+## Secundaire arbeidsvoorwaarden
+
+Daarnaast ontvangt u: a monthly public transport allowance, a company pension contribution and a learning budget of €1,000 a year.
+
+## Hulp bij verhuizing
+
+Ter ondersteuning van uw verhuizing bieden wij: a one-off relocation allowance of €3,000 gross.
+
+## Collectieve arbeidsovereenkomst (cao)
+
+Op uw dienstverband is deze cao van toepassing: CAO voor de Metaal en Techniek. Waar de cao u betere voorwaarden biedt dan deze brief, geldt de cao.
+
+## Voorwaarden van dit aanbod
+
+Dit aanbod is afhankelijk van:
+
+- bewijs dat u in Nederland mag werken, inclusief een verblijfs- en werkvergunning als u die nodig heeft
+- referenties die het bedrijf voldoende acht
+
+Wij vragen u dit aanbod te bevestigen door uiterlijk 30 oktober 2026 een ondertekend exemplaar van deze brief aan ons terug te sturen. Wij kijken ernaar uit u in ons team te verwelkomen.
+
+Met vriendelijke groet,
+
+[Namens Example Engineering GmbH] [Voor akkoord: Ik aanvaard dit aanbod onder de hierboven genoemde voorwaarden.]
+
+Example Engineering GmbH brengt kandidaten nooit kosten in rekening. · Vertaling ter informatie – de Engelse versie is leidend."
 `;
 
 exports[`NZ > reads as expected 1`] = `

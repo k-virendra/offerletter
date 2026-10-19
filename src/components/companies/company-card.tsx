@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { readableAccent } from "@/lib/color";
 import { companyInitials, letterSummary, letterSummaryShort } from "@/lib/companies/format";
 import type { CompanySummary } from "@/lib/companies/queries";
-import { countryName } from "@/lib/countries";
+import { placeName } from "@/lib/countries";
 import { cn } from "@/lib/utils";
 
 export function CompanyLogoTile({ company, className }: { company: CompanySummary; className?: string }) {
@@ -61,7 +61,7 @@ export function CompanyCard({ company, limit }: { company: CompanySummary; limit
     limit,
   };
   const accent = company.brand_color ? readableAccent(company.brand_color) : null;
-  const country = countryName(company.country_code);
+  const country = placeName(company.country_code, company.region_code);
 
   return (
     <li

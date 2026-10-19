@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getUser } from "@/lib/auth";
 import { normalizeHex } from "@/lib/color";
-import { loadLetterContext } from "@/lib/letter/context.server";
+import { companyLetterPlace, loadLetterContext } from "@/lib/letter/context.server";
 import { moveToJurisdiction, sanitizeValues } from "@/lib/letter/fields";
 import { changedLockedField } from "@/lib/letter/corrections";
 import { correctionOpen, letterState } from "@/lib/letter/letters.server";
@@ -28,24 +28,26 @@ export async function createLetter(formData: FormData): Promise<CreateLetterResu
   }
 
   const companyId = uuid.safeParse(formData.get("company_id"));
-  const jurisdictionCode = String(formData.get("jurisdiction_code") ?? "");
   const templateKey = String(formData.get("template_key") ?? "");
   if (!companyId.success) return { ok: false, message: "Choose a company for this letter." };
-
-  const context = await loadLetterContext(jurisdictionCode);
-  if (!context || !context.clauses.candidate) return { ok: false, message: "Letters for this country aren’t available yet. Choose another country." };
-  if (!context.templates.some((t) => t.key === templateKey)) return { ok: false, message: "Choose a letter style." };
 
   const supabase = await createClient();
   const { data: company } = await supabase
     .from("companies")
-    .select("id, archived_at, suspended_at, signatory_name, signatory_title")
+    .select("id, country_code, region_code, archived_at, suspended_at, signatory_name, signatory_title")
     .eq("id", companyId.data)
     .eq("owner_id", user.id)
     .maybeSingle();
   if (!company) return { ok: false, message: "We couldn’t find this company. Choose another one." };
   if (company.suspended_at) return { ok: false, message: "New letters for this company are paused. Contact support to find out more." };
   if (company.archived_at) return { ok: false, message: "This company is archived. Restore it in My companies to use it again." };
+
+  // The letter uses the company's country (and state or province): nothing posted can choose another.
+  const place = await companyLetterPlace(company);
+  if (!place.ok) return { ok: false, message: place.reason };
+  const context = await loadLetterContext(place.jurisdiction.code);
+  if (!context || !context.clauses.candidate) return { ok: false, message: `Offer letters for ${place.label} aren’t available yet.` };
+  if (!context.templates.some((t) => t.key === templateKey)) return { ok: false, message: "Choose a letter style." };
 
   const values: FieldValues = {};
   for (const field of context.fields) if (field.defaultValue !== null) values[field.key] = field.defaultValue;
@@ -150,36 +152,37 @@ export async function saveDraft(letterId: string, baseEditedAt: string, patch: D
   return { ok: true, editedAt: saved.edited_at };
 }
 
-export type ChangeCountryResult =
+export type FollowCompanyResult =
   | { ok: true; name: string; dropped: string[] }
   | { ok: false; reason: "conflict" | "invalid" | "gone" | "signed_out"; message: string };
 
 /**
- * Moves a draft to another country or state: its sections are resolved again, answers the new country still asks
- * for are kept, and sections it requires come back. Returns the labels of answers that no longer apply.
+ * A draft started before its company moved (or gave its state): it switches to the wording for where the company
+ * is now. Its sections are resolved again, answers the new wording still asks for are kept, and sections it requires
+ * come back. Returns the labels of answers that no longer apply.
  */
-export async function changeLetterCountry(letterId: string, baseEditedAt: string, jurisdictionCode: string): Promise<ChangeCountryResult> {
+export async function followCompanyCountry(letterId: string, baseEditedAt: string): Promise<FollowCompanyResult> {
   const user = await getUser();
-  if (!user) return { ok: false, reason: "signed_out", message: "Your session has ended. Sign in again to change the country." };
+  if (!user) return { ok: false, reason: "signed_out", message: "Your session has ended. Sign in again to update the letter." };
   if (!uuid.safeParse(letterId).success) return { ok: false, reason: "gone", message: "We couldn’t find this letter." };
 
   const supabase = await createClient();
   const { data: letter } = await supabase
     .from("letters")
-    .select("status, jurisdiction_code, template_key, name, accent_color, field_values, removed_sections, edited_at")
+    .select("status, jurisdiction_code, template_key, name, accent_color, field_values, removed_sections, edited_at, companies(country_code, region_code)")
     .eq("id", letterId)
     .eq("author_id", user.id)
     .maybeSingle();
-  if (!letter || letter.status !== "draft") return { ok: false, reason: "gone", message: "Only draft letters can change country." };
+  if (!letter || letter.status !== "draft" || !letter.companies) return { ok: false, reason: "gone", message: "Only draft letters can change country." };
   if (letter.edited_at !== baseEditedAt) {
     return { ok: false, reason: "conflict", message: "This letter was changed in another tab or window. Reload it first." };
   }
 
-  const [current, next] = await Promise.all([loadLetterContext(letter.jurisdiction_code), loadLetterContext(jurisdictionCode)]);
-  if (!next || !next.clauses.candidate) return { ok: false, reason: "invalid", message: "Letters for this country aren’t available yet." };
-  const { name: placeName, countryName } = next.jurisdiction;
-  const name = placeName === countryName ? placeName : `${countryName}, ${placeName}`;
-  if (letter.jurisdiction_code === jurisdictionCode) return { ok: true, name, dropped: [] };
+  const place = await companyLetterPlace(letter.companies);
+  if (!place.ok) return { ok: false, reason: "invalid", message: place.reason };
+  const [current, next] = await Promise.all([loadLetterContext(letter.jurisdiction_code), loadLetterContext(place.jurisdiction.code)]);
+  if (!next || !next.clauses.candidate) return { ok: false, reason: "invalid", message: `Offer letters for ${place.label} aren’t available yet.` };
+  if (letter.jurisdiction_code === next.jurisdiction.code) return { ok: true, name: place.label, dropped: [] };
 
   const { state, dropped } = moveToJurisdiction(next, letterState(letter));
   const templateKey = next.templates.some((t) => t.key === state.templateKey) ? state.templateKey : (next.templates[0]?.key ?? state.templateKey);
@@ -197,9 +200,9 @@ export async function changeLetterCountry(letterId: string, baseEditedAt: string
     .select("edited_at")
     .maybeSingle();
   if (error) {
-    console.error("changeLetterCountry failed", error.code, error.message);
+    console.error("followCompanyCountry failed", error.code, error.message);
     return { ok: false, reason: "invalid", message: "We couldn’t change the country. Try again in a moment." };
   }
   if (!saved) return { ok: false, reason: "conflict", message: "This letter was changed in another tab or window. Reload it first." };
-  return { ok: true, name, dropped: dropped.map((key) => current?.fields.find((f) => f.key === key)?.label ?? key) };
+  return { ok: true, name: place.label, dropped: dropped.map((key) => current?.fields.find((f) => f.key === key)?.label ?? key) };
 }

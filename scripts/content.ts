@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { parse } from "yaml";
 import { z } from "zod";
-import { checkClause } from "../src/lib/template/clause-check";
+import { checkClause, translationMismatch } from "../src/lib/template/clause-check";
 import {
   clauseFileSchema,
   fieldSchema,
@@ -128,5 +128,87 @@ export function loadContent(): Content {
       return { file, content };
     });
 
+  checkTranslations({ jurisdictions, sections, fields, phrases, clauseFiles });
   return { jurisdictions, templates, sections, fields, prices, plans, phrases, clauseFiles };
+}
+
+/** The newest version of each section's clause in one language for one jurisdiction. */
+function latestClauses(clauseFiles: Content["clauseFiles"], jurisdiction: string, language: string) {
+  const latest = new Map<string, ClauseFileContent["clauses"][number]>();
+  for (const { content } of clauseFiles) {
+    if (content.jurisdiction !== jurisdiction || content.language !== language) continue;
+    for (const clause of content.clauses) {
+      if ((latest.get(clause.section)?.version ?? 0) < clause.version) latest.set(clause.section, clause);
+    }
+  }
+  return latest;
+}
+
+/** The answers a select field can print in a jurisdiction, after its country overrides. */
+function selectOptions(field: FieldContent, chain: string[]): { value: string }[] {
+  if (field.type !== "select") return [];
+  if (field.jurisdictions?.length && !field.jurisdictions.some((code) => chain.includes(code))) return [];
+  const overrides = (field.jurisdiction_overrides ?? {}) as Record<string, { options?: { value: string }[] }>;
+  for (const code of chain) if (overrides[code]?.options) return overrides[code].options;
+  return (field.options ?? []) as { value: string }[];
+}
+
+const phraseParts = (text: string) => [...text.matchAll(/\{\{(\w+)\}\}/g)].map((match) => match[1]).sort().join(",");
+
+/**
+ * Translations: a country with a `translation` has its English clauses translated section for section, printing the
+ * same values; and the language's phrases cover everything such a letter prints.
+ */
+function checkTranslations({ jurisdictions, sections, fields, phrases, clauseFiles }: Omit<Content, "templates" | "prices" | "plans">) {
+  for (const { file, content } of clauseFiles) {
+    if (content.language === "en") continue;
+    const jurisdiction = jurisdictions.find((j) => j.code === content.jurisdiction);
+    if (jurisdiction?.translation?.language !== content.language) {
+      throw new Error(`${file}: jurisdictions.yaml doesn’t give ${content.jurisdiction} a ${content.language} translation`);
+    }
+  }
+
+  for (const jurisdiction of jurisdictions) {
+    const language = jurisdiction.translation?.language;
+    if (!language) continue;
+    const file = `clauses/${jurisdiction.code.toLowerCase()}.${language}.yaml`;
+    const english = latestClauses(clauseFiles, jurisdiction.code, "en");
+    const translated = latestClauses(clauseFiles, jurisdiction.code, language);
+    for (const [section, clause] of english) {
+      const translation = translated.get(section);
+      if (!translation) throw new Error(`${file}: ${section} has no ${language} translation`);
+      const mismatch = translationMismatch(clause.body, translation.body);
+      if (mismatch) throw new Error(`${file}: ${section}: ${mismatch}`);
+    }
+    for (const section of translated.keys()) {
+      if (!english.has(section)) throw new Error(`${file}: ${section} has no English clause to translate`);
+    }
+
+    const texts = phrases.languages[language];
+    if (!texts) throw new Error(`letter-phrases.yaml: languages.${language} is missing (${jurisdiction.code} letters are translated)`);
+    const chain = jurisdictionChain(jurisdictions, jurisdiction.code);
+    const needed = [
+      ...Object.keys(phrases.defaults),
+      "translation_notice",
+      ...[...translated.keys()].map((section) => `section.${section}`),
+      ...fields.flatMap((field) => selectOptions(field, chain).map((option) => `option.${field.key}.${option.value}`)),
+    ];
+    for (const key of needed) if (!texts[key]) throw new Error(`letter-phrases.yaml: languages.${language} needs ${key} for ${jurisdiction.code} letters`);
+  }
+
+  const sectionKeys = new Set(sections.map((section) => section.key));
+  const fieldKeys = new Set(fields.map((field) => field.key));
+  for (const [language, texts] of Object.entries(phrases.languages)) {
+    if (!jurisdictions.some((j) => j.translation?.language === language)) throw new Error(`letter-phrases.yaml: no country is translated into ${language}`);
+    for (const [key, text] of Object.entries(texts)) {
+      const section = key.match(/^section\.([a-z_]+)(\.short)?$/)?.[1];
+      const option = key.match(/^option\.([a-z_]+\.[a-z_]+)\./)?.[1];
+      const known = key in phrases.defaults || key === "translation_notice" || (section && sectionKeys.has(section)) || (option && fieldKeys.has(option));
+      if (!known) throw new Error(`letter-phrases.yaml: languages.${language}.${key} isn’t a phrase, section title or answer`);
+      const english = phrases.defaults[key];
+      if (english !== undefined && phraseParts(english) !== phraseParts(text)) {
+        throw new Error(`letter-phrases.yaml: languages.${language}.${key} must use the same {{…}} parts as the English phrase`);
+      }
+    }
+  }
 }

@@ -1,5 +1,5 @@
-// Countries a company can be registered in (ISO 3166-1 alpha-2, without uninhabited territories). This is the
-// company's home country, which may differ from the country a letter is written for.
+// Countries a company can be registered in (ISO 3166-1 alpha-2, without uninhabited territories). Offer letters use
+// the wording for the company's country.
 
 const ISO_CODES = `AD AE AF AG AI AL AM AO AR AS AT AU AW AX AZ BA BB BD BE BF BG BH BI BJ BL BM BN BO BQ BR BS BT BW BY
 BZ CA CC CD CF CG CH CI CK CL CM CN CO CR CU CV CW CX CY CZ DE DJ DK DM DO DZ EC EE EG EH ER ES ET FI FJ FK FM FO FR GA
@@ -31,4 +31,30 @@ export function countryOptions(): { launch: CountryOption[]; other: CountryOptio
       .map(toOption)
       .sort((a, b) => a.name.localeCompare(b.name, "en")),
   };
+}
+
+// States and provinces (ISO 3166-2), asked for where employment law differs by them. Letters use a state's or
+// province's own wording when there is some, and otherwise the country's.
+const US_STATES = `AL Alabama|AK Alaska|AZ Arizona|AR Arkansas|CA California|CO Colorado|CT Connecticut|DE Delaware|DC District of Columbia|FL Florida|GA Georgia|HI Hawaii|ID Idaho|IL Illinois|IN Indiana|IA Iowa|KS Kansas|KY Kentucky|LA Louisiana|ME Maine|MD Maryland|MA Massachusetts|MI Michigan|MN Minnesota|MS Mississippi|MO Missouri|MT Montana|NE Nebraska|NV Nevada|NH New Hampshire|NJ New Jersey|NM New Mexico|NY New York|NC North Carolina|ND North Dakota|OH Ohio|OK Oklahoma|OR Oregon|PA Pennsylvania|RI Rhode Island|SC South Carolina|SD South Dakota|TN Tennessee|TX Texas|UT Utah|VT Vermont|VA Virginia|WA Washington|WV West Virginia|WI Wisconsin|WY Wyoming`;
+const CA_PROVINCES = `AB Alberta|BC British Columbia|MB Manitoba|NB New Brunswick|NL Newfoundland and Labrador|NS Nova Scotia|NT Northwest Territories|NU Nunavut|ON Ontario|PE Prince Edward Island|QC Quebec|SK Saskatchewan|YT Yukon`;
+
+export type RegionOption = { code: string; name: string };
+
+function regionList(country: string, list: string): RegionOption[] {
+  return list.split("|").map((entry) => ({ code: `${country}-${entry.slice(0, 2)}`, name: entry.slice(3) }));
+}
+
+/** Countries whose companies also give a state or province, with its label. */
+export const REGIONS: Record<string, { label: "State" | "Province or territory"; options: RegionOption[] }> = {
+  US: { label: "State", options: regionList("US", US_STATES) },
+  CA: { label: "Province or territory", options: regionList("CA", CA_PROVINCES) },
+};
+
+export function regionName(code: string): string {
+  return REGIONS[code.slice(0, 2)]?.options.find((region) => region.code === code)?.name ?? code;
+}
+
+/** "Germany", or "United States, California" for a company that gives a state (the order letters use too). */
+export function placeName(countryCode: string, regionCode: string | null): string {
+  return regionCode ? `${countryName(countryCode)}, ${regionName(regionCode)}` : countryName(countryCode);
 }

@@ -6,7 +6,7 @@ import { LetterEditor } from "@/components/editor/letter-editor";
 import { Button } from "@/components/ui/button";
 import { requireUser } from "@/lib/auth";
 import { splitAddress } from "@/lib/letter/build";
-import { listJurisdictions } from "@/lib/letter/context.server";
+import { companyLetterPlace } from "@/lib/letter/context.server";
 import { correctionOpen, displayPrice, getLetter, letterCompany, letterState } from "@/lib/letter/letters.server";
 import { letterWording } from "@/lib/pdf/inputs.server";
 
@@ -40,9 +40,11 @@ export default async function EditLetterPage({ params }: PageProps<"/letters/[id
     );
   }
 
-  const { context, date } = wording;
+  const { context, date, translation } = wording;
   const row = letter.companies;
-  const [company, price, jurisdictions] = await Promise.all([letterCompany(row), displayPrice(), listJurisdictions()]);
+  const [company, price, place] = await Promise.all([letterCompany(row), displayPrice(), companyLetterPlace(row)]);
+  // A draft follows its company: if the company moved (or gave its state) since, offer to switch the wording.
+  const companyMoved = !correcting && place.ok && place.jurisdiction.code !== letter.jurisdiction_code ? { label: place.label } : undefined;
   const summary = [splitAddress(row.registered_address).join(", "), row.registration_number, `Signs: ${row.signatory_name}, ${row.signatory_title}`].join(" · ");
 
   return (
@@ -57,7 +59,8 @@ export default async function EditLetterPage({ params }: PageProps<"/letters/[id
       companySummary={summary}
       today={date}
       price={price}
-      jurisdictions={jurisdictions}
+      companyMoved={companyMoved}
+      translation={translation}
       correction={correcting ? { version: letter.current_version, until: letter.correction_until! } : undefined}
     />
   );

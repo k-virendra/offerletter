@@ -9,9 +9,25 @@ import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/field";
 import { toast } from "@/components/ui/toast";
 
-export function ClauseFilters({ countries, country, status }: { countries: { code: string; label: string }[]; country: string; status: string }) {
+export function ClauseFilters({
+  countries,
+  country,
+  status,
+  languages,
+  language,
+}: {
+  countries: { code: string; label: string }[];
+  country: string;
+  status: string;
+  /** English, and the country's own language when its letters also come translated. */
+  languages: { code: string; label: string }[];
+  language: string;
+}) {
   const router = useRouter();
-  const go = (next: { country?: string; status?: string }) => router.push(`/admin/clauses?${new URLSearchParams({ country: next.country ?? country, status: next.status ?? status })}`);
+  const go = (next: { country?: string; status?: string; lang?: string }) =>
+    router.push(
+      `/admin/clauses?${new URLSearchParams({ country: next.country ?? country, status: next.status ?? status, lang: next.country && next.country !== country ? "en" : (next.lang ?? language) })}`,
+    );
   return (
     <div className="grid grid-cols-2 gap-3">
       <label className="flex flex-col gap-1.5 text-sm font-medium">
@@ -33,23 +49,35 @@ export function ClauseFilters({ countries, country, status }: { countries: { cod
           <option value="approved">Approved</option>
         </Select>
       </label>
+      {languages.length > 1 ? (
+        <label className="col-span-2 flex flex-col gap-1.5 text-sm font-medium">
+          Language
+          <Select value={language} onChange={(e) => go({ lang: e.target.value })}>
+            {languages.map((l) => (
+              <option key={l.code} value={l.code}>
+                {l.code === "en" ? l.label : `${l.label} translation`}
+              </option>
+            ))}
+          </Select>
+        </label>
+      ) : null}
     </div>
   );
 }
 
 /** Starts a clause for a section this country has no wording of its own for yet. */
-export function NewClauseButton({ country, sections }: { country: string; sections: { key: string; title: string }[] }) {
+export function NewClauseButton({ country, language, sections }: { country: string; language: string; sections: { key: string; title: string }[] }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [section, setSection] = useState(sections[0]?.key ?? "");
   const [pending, start] = useTransition();
   const create = () =>
     start(async () => {
-      const result = await createClauseVersion(section, country);
+      const result = await createClauseVersion(section, country, language);
       if (!result.ok) return toast(result.message);
       setOpen(false);
       toast("Draft created.");
-      router.push(`/admin/clauses?${new URLSearchParams({ country, status: "all", id: result.id })}`);
+      router.push(`/admin/clauses?${new URLSearchParams({ country, status: "all", lang: language, id: result.id })}`);
     });
 
   return (

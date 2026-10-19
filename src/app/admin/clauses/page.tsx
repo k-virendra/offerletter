@@ -6,7 +6,8 @@ import { ClauseEditor, type ClauseHistoryEntry } from "@/components/admin/clause
 import { ClauseFilters, NewClauseButton } from "@/components/admin/clause-filters";
 import { AdminCard, AdminHeader, EmptyState, Pill, REVIEW_LABELS } from "@/components/admin/ui";
 import { countryReadiness, shortDateTime } from "@/lib/admin/queries.server";
-import { loadAdminPreviewContext } from "@/lib/letter/context.server";
+import { loadAdminPreviewContext, loadAdminPreviewTranslation } from "@/lib/letter/context.server";
+import { languageName } from "@/lib/letter/translation";
 import { sampleValues } from "@/lib/letter/samples";
 import { adminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -25,10 +26,14 @@ export default async function AdminClausesPage({ searchParams }: PageProps<"/adm
   const status = (["draft", "in_review", "approved"] as const).find((s) => s === params.status) ?? "all";
   const selectedId = typeof params.id === "string" && z.uuid().safeParse(params.id).success ? params.id : null;
   if (!country) return <EmptyState>No countries yet. Run the seed first.</EmptyState>;
+  // English, and the country's own language where letters also come translated.
+  const languages = ["en", ...(country.translation ? [country.translation.language] : [])];
+  const language = languages.find((l) => l === params.lang) ?? "en";
 
-  const [{ data: sections }, { data: rows }] = await Promise.all([
+  const [{ data: sections }, { data: rows }, { data: english }] = await Promise.all([
     supabase.from("sections").select("key, default_title, default_order, always_included").order("default_order"),
-    supabase.from("clause_variants").select("id, section_key, title, version, review_status, locked").eq("jurisdiction_code", country.code).eq("language", "en").order("version", { ascending: false }),
+    supabase.from("clause_variants").select("id, section_key, title, version, review_status, locked").eq("jurisdiction_code", country.code).eq("language", language).order("version", { ascending: false }),
+    language === "en" ? Promise.resolve({ data: null }) : supabase.from("clause_variants").select("section_key").eq("jurisdiction_code", country.code).eq("language", "en"),
   ]);
   // One row per section: its latest version in this country.
   const latest = new Map<string, NonNullable<typeof rows>[number]>();
@@ -37,21 +42,28 @@ export default async function AdminClausesPage({ searchParams }: PageProps<"/adm
   const list = [...latest.values()]
     .filter((row) => status === "all" || row.review_status === status)
     .sort((a, b) => (sections?.findIndex((s) => s.key === a.section_key) ?? 0) - (sections?.findIndex((s) => s.key === b.section_key) ?? 0));
-  const unwritten = (sections ?? []).filter((s) => !latest.has(s.key));
+  // A translation is written for the sections the country has English wording for.
+  const unwritten = (sections ?? []).filter((s) => !latest.has(s.key) && (!english || english.some((e) => e.section_key === s.key)));
   const selected = (rows ?? []).find((row) => row.id === selectedId) ?? (selectedId ? null : list[0]);
-  const href = (extra: Record<string, string>) => `/admin/clauses?${new URLSearchParams({ country: country.code, status, ...extra })}`;
+  const href = (extra: Record<string, string>) => `/admin/clauses?${new URLSearchParams({ country: country.code, status, lang: language, ...extra })}`;
 
   return (
     <>
       <AdminHeader
         title="Clause library"
         description="Every clause starts as a draft. A country can go live only when all its required sections have an approved clause."
-        actions={<NewClauseButton country={country.code} sections={unwritten.map((s) => ({ key: s.key, title: s.default_title }))} />}
+        actions={<NewClauseButton country={country.code} language={language} sections={unwritten.map((s) => ({ key: s.key, title: s.default_title }))} />}
       />
       <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[380px_minmax(0,1fr)]">
         <AdminCard className="p-0 md:p-0">
           <div className="border-b border-line-soft p-4">
-            <ClauseFilters countries={countries.map((c) => ({ code: c.code, label: `${c.label} (${c.code})` }))} country={country.code} status={status} />
+            <ClauseFilters
+              countries={countries.map((c) => ({ code: c.code, label: `${c.label} (${c.code})` }))}
+              country={country.code}
+              status={status}
+              languages={languages.map((code) => ({ code, label: languageName(code, "en") }))}
+              language={language}
+            />
           </div>
           {list.length ? (
             <ul className="flex flex-col gap-1 p-2">
@@ -67,7 +79,8 @@ export default async function AdminClausesPage({ searchParams }: PageProps<"/adm
                       {row.title || sectionTitle(row.section_key)}
                     </span>
                     <span className="flex items-center gap-2 text-[13px] text-ink-2">
-                      {country.code} · v{row.version}
+                      {country.code}
+                      {language === "en" ? "" : ` · ${language.toUpperCase()}`} · v{row.version}
                       <Pill tone={REVIEW_LABELS[row.review_status as Status].tone} className="h-5 px-2 text-xs">
                         {REVIEW_LABELS[row.review_status as Status].text}
                       </Pill>
@@ -77,12 +90,14 @@ export default async function AdminClausesPage({ searchParams }: PageProps<"/adm
               ))}
             </ul>
           ) : (
-            <p className="p-4 text-sm text-ink-2">{status === "all" ? "No clauses are written for this country itself yet." : "No clauses with this status."}</p>
+            <p className="p-4 text-sm text-ink-2">
+              {status !== "all" ? "No clauses with this status." : language === "en" ? "No clauses are written for this country itself yet." : "No translated clauses yet."}
+            </p>
           )}
           {unwritten.length && status === "all" ? (
             <p className="border-t border-line-soft p-4 text-[13px] text-ink-2">
               Not written for {country.code} ({unwritten.length}): {unwritten.map((s) => s.default_title).join(", ")}.{" "}
-              {country.parentCode ? `These use ${country.parentCode}’s wording, if it has any.` : ""}
+              {language !== "en" ? "Until they’re translated and approved, paid letters come in English only." : country.parentCode ? `These use ${country.parentCode}’s wording, if it has any.` : ""}
             </p>
           ) : null}
         </AdminCard>
@@ -97,23 +112,36 @@ async function ClauseDetail({ id, countryLabel }: { id: string; countryLabel: st
   const db = adminClient();
   const { data: clause } = await db
     .from("clause_variants")
-    .select("id, section_key, jurisdiction_code, title, body, locked, locked_reason, editor_help, legal_notes, version, review_status, reviewer, reviewed_at, source_file, created_at, profiles(email)")
+    .select("id, section_key, jurisdiction_code, language, title, body, locked, locked_reason, editor_help, legal_notes, version, review_status, reviewer, reviewed_at, source_file, created_at, profiles(email)")
     .eq("id", id)
     .maybeSingle();
   if (!clause) return <EmptyState>This clause no longer exists.</EmptyState>;
 
-  const [{ data: versions }, { data: fields }, { data: chain }, context, { data: section }] = await Promise.all([
+  const translation = clause.language !== "en";
+  const [{ data: versions }, { data: fields }, { data: chain }, context, { data: section }, { data: english }] = await Promise.all([
     db
       .from("clause_variants")
       .select("id, version, review_status, reviewer, reviewed_at, source_file, created_at, profiles(email)")
       .eq("section_key", clause.section_key)
       .eq("jurisdiction_code", clause.jurisdiction_code)
-      .eq("language", "en")
+      .eq("language", clause.language)
       .order("version", { ascending: false }),
     db.from("field_definitions").select("key, section_key, jurisdictions"),
     db.rpc("jurisdiction_chain", { p_code: clause.jurisdiction_code }),
-    loadAdminPreviewContext(clause.jurisdiction_code),
+    translation ? loadAdminPreviewTranslation(clause.jurisdiction_code) : loadAdminPreviewContext(clause.jurisdiction_code),
     db.from("sections").select("default_title").eq("key", clause.section_key).maybeSingle(),
+    // A translation is checked against the latest English clause for the section.
+    translation
+      ? db
+          .from("clause_variants")
+          .select("version, body")
+          .eq("section_key", clause.section_key)
+          .eq("jurisdiction_code", clause.jurisdiction_code)
+          .eq("language", "en")
+          .order("version", { ascending: false })
+          .limit(1)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
   ]);
   const ids = (versions ?? []).map((v) => v.id);
   const { data: audit } = ids.length
@@ -142,6 +170,7 @@ async function ClauseDetail({ id, countryLabel }: { id: string; countryLabel: st
         sectionTitle: section?.default_title ?? clause.section_key,
         jurisdictionCode: clause.jurisdiction_code,
         jurisdictionLabel: countryLabel,
+        language: clause.language,
         version: clause.version,
         status: clause.review_status,
         title: clause.title ?? "",
@@ -158,6 +187,7 @@ async function ClauseDetail({ id, countryLabel }: { id: string; countryLabel: st
       chain={chain ?? [clause.jurisdiction_code]}
       context={context}
       sampleValues={sampleValues(clause.jurisdiction_code)}
+      translationOf={english ?? undefined}
       history={history}
     />
   );

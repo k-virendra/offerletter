@@ -9,9 +9,10 @@ import { CheckoutHeader } from "@/components/checkout/checkout-header";
 import { LetterThumbnail } from "@/components/letter/letter-view";
 import { getProfile, requireUser } from "@/lib/auth";
 import { countryOptions } from "@/lib/countries";
-import { loadLetterContext } from "@/lib/letter/context.server";
+import { loadLetterContext, translatedWording } from "@/lib/letter/context.server";
 import { blockingProblems } from "@/lib/letter/fields";
 import { getLetter, letterCompany, letterState } from "@/lib/letter/letters.server";
+import { coveredTranslation, languageName } from "@/lib/letter/translation";
 import { correctionDeadline } from "@/lib/payments/complete.server";
 import { activePrices, formatMoney } from "@/lib/payments/prices.server";
 import { createClient } from "@/lib/supabase/server";
@@ -39,12 +40,15 @@ export default async function CheckoutPage({ params }: PageProps<"/letters/[id]/
   if (problems.missing.length || problems.invalid.length) redirect(`/letters/${id}/edit`);
 
   const supabase = await createClient();
-  const [company, prices, profile, pending] = await Promise.all([
+  const [company, prices, profile, pending, translated] = await Promise.all([
     letterCompany(row, 60 * 60),
     activePrices(),
     getProfile(),
     supabase.from("payments").select("txnid").eq("letter_id", id).eq("user_id", user.id).eq("status", "pending").limit(1).maybeSingle(),
+    translatedWording(context),
   ]);
+  // The same check as when the letter is frozen at Pay: a translation that covers every section comes with it.
+  const translation = coveredTranslation(context, translated, state.removedSections);
 
   const price = formatMoney(prices.display);
   const charged = formatMoney(prices.charge);
@@ -124,7 +128,9 @@ export default async function CheckoutPage({ params }: PageProps<"/letters/[id]/
           <h3 className="mt-5 text-sm font-semibold">Included</h3>
           <ul className="mt-2 flex flex-col gap-2 text-sm text-ink-2">
             {[
-              "The final PDF, without the preview watermark",
+              translation?.language
+                ? `The final PDF in English, plus a ${languageName(translation.language, "en")} translation (the English version prevails)`
+                : "The final PDF, without the preview watermark",
               `Free corrections until ${correctionsUntil}`,
               "Every version kept, with a fingerprint to check it by",
               "A receipt by email",

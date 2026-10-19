@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildLetterDocument, runsText } from "./build";
 import { blockingProblems, crossFieldErrors, moveToJurisdiction, sectionLock } from "./fields";
 import { EXAMPLE_ENGINEERING, sampleValues } from "./samples";
-import { contextFor } from "./test-context";
+import { contextFor, translatedContextFor } from "./test-context";
 import type { Block, LetterDocument, LetterState } from "./types";
 
 // Every launch jurisdiction, built with complete sample answers: no gaps, the sections the law requires, the right
@@ -91,6 +91,17 @@ describe.each(LAUNCH)("%s", (code) => {
   });
 
   it("reads as expected", () => {
+    expect(letterText(doc)).toMatchSnapshot();
+  });
+});
+
+// Countries whose letters also come translated: the translation's text, for review next to the English one.
+describe.each(["DE", "NL"])("%s translation", (code) => {
+  const state = sampleState(code);
+  const doc = buildLetterDocument(translatedContextFor(code), EXAMPLE_ENGINEERING, state, { date: TODAY });
+
+  it("is complete and reads as expected", () => {
+    expect(JSON.stringify(doc)).not.toContain('"kind":"missing"');
     expect(letterText(doc)).toMatchSnapshot();
   });
 });

@@ -32,6 +32,7 @@ export function letterMetadata(inputs: Pick<PrintInputs, "context" | "state" | "
     author: inputs.company.legalName,
     subject: role ? `${doc.title.label}: ${role}` : doc.title.label,
     keywords: ["offer letter", inputs.context.jurisdiction.name],
+    language: doc.language,
   };
 }
 
@@ -96,29 +97,44 @@ export async function issueLetterVersion(
 }
 
 /**
- * Renders and stores a version's final PDF if it doesn't have one yet (also the retry when rendering failed after
- * the version was saved). The stored path is set once and never replaced.
+ * Renders and stores a version's final PDF, and its translation's when one was issued with it, if they aren't stored
+ * yet (also the retry when rendering failed after the version was saved). Both are recorded together, so a version
+ * shows as ready only once every PDF it has is there. Stored paths are set once and never replaced.
  */
 export async function ensureVersionPdf(
   versionId: string,
   known?: { authorId: string; letterId: string; version: number; hash: string },
 ): Promise<string> {
   const db = adminClient();
-  const { data: row } = await db.from("letter_versions").select("id, letter_id, version, content_hash, pdf_path, letters(author_id)").eq("id", versionId).maybeSingle();
+  const { data: row } = await db
+    .from("letter_versions")
+    .select("id, letter_id, version, content_hash, pdf_path, translated_pdf_path, snapshot, letters(author_id)")
+    .eq("id", versionId)
+    .maybeSingle();
   if (!row) throw new IssueError("not_found", "Version not found");
-  if (row.pdf_path) return row.pdf_path;
+  const language = (row.snapshot as unknown as IssuedSnapshot).translation?.language;
+  if (row.pdf_path && (!language || row.translated_pdf_path)) return row.pdf_path;
 
-  const inputs = await versionInputs(versionId);
-  if (!inputs) throw new IssueError("not_found", "Version snapshot not found");
   const authorId = known?.authorId ?? row.letters?.author_id;
   if (!authorId) throw new IssueError("not_found", "Letter author not found");
+  const base = `${authorId}/${row.letter_id}/v${row.version}-${row.content_hash.slice(0, 12)}`;
 
-  const pdf = await renderLetterPdf({ kind: "version", id: versionId, watermark: false }, letterMetadata(inputs, false));
-  const path = `${authorId}/${row.letter_id}/v${row.version}-${row.content_hash.slice(0, 12)}.pdf`;
-  const upload = await db.storage.from(LETTERS_BUCKET).upload(path, pdf, { contentType: "application/pdf", upsert: false });
-  if (upload.error && !/exists/i.test(upload.error.message)) throw new IssueError("storage", `Couldn't store the PDF: ${upload.error.message}`);
+  const store = async (lang: string, path: string) => {
+    const inputs = await versionInputs(versionId, lang);
+    if (!inputs) throw new IssueError("not_found", `Version snapshot not found (${lang})`);
+    const pdf = await renderLetterPdf({ kind: "version", id: versionId, watermark: false, language: lang }, letterMetadata(inputs, false));
+    const upload = await db.storage.from(LETTERS_BUCKET).upload(path, pdf, { contentType: "application/pdf", upsert: false });
+    if (upload.error && !/exists/i.test(upload.error.message)) throw new IssueError("storage", `Couldn't store the PDF: ${upload.error.message}`);
+    return path;
+  };
+  const update: { pdf_path?: string; translated_pdf_path?: string } = {};
+  if (!row.pdf_path) update.pdf_path = await store("en", `${base}.pdf`);
+  if (language && !row.translated_pdf_path) update.translated_pdf_path = await store(language, `${base}.${language}.pdf`);
 
-  const { error } = await db.from("letter_versions").update({ pdf_path: path }).eq("id", versionId).is("pdf_path", null);
+  let query = db.from("letter_versions").update(update).eq("id", versionId);
+  if (update.pdf_path) query = query.is("pdf_path", null);
+  if (update.translated_pdf_path) query = query.is("translated_pdf_path", null);
+  const { error } = await query;
   if (error) throw new IssueError("storage", `Couldn't record the PDF: ${error.message}`);
-  return path;
+  return row.pdf_path ?? update.pdf_path!;
 }

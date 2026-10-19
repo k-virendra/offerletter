@@ -4,10 +4,9 @@ import { ArrowLeft, Check, CircleAlert, CloudOff, FilePenLine, FileText, Loader2
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import { changeLetterCountry } from "@/app/(editor)/letters/actions";
-import { ChangeCountryDialog } from "@/components/editor/change-country-dialog";
+import { followCompanyCountry } from "@/app/(editor)/letters/actions";
 import { fieldDomId, SectionCard, sectionHeadingId, type FieldNote } from "@/components/editor/section-card";
-import { PreviewPane } from "@/components/editor/preview-pane";
+import { PreviewPane, type PreviewLanguages } from "@/components/editor/preview-pane";
 import { recoverBackup, useAutosave, type SaveStatus } from "@/components/editor/use-autosave";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -18,7 +17,7 @@ import { buildLetterDocument } from "@/lib/letter/build";
 import { LOCKED_IN_CORRECTIONS } from "@/lib/letter/corrections";
 import { crossFieldErrors, fieldError, isEmptyValue, letterSections, missingFields, sectionLock } from "@/lib/letter/fields";
 import { automaticName, DEFAULT_LETTER_NAME } from "@/lib/letter/naming";
-import type { JurisdictionOption } from "@/lib/letter/context.server";
+import { languageName, untranslatedSections } from "@/lib/letter/translation";
 import type { FieldDefinition, FieldValue, LetterCompany, LetterContext, LetterDocument, LetterState, Run } from "@/lib/letter/types";
 import { formatDay, formatMoney, parseAmount, payFigures } from "@/lib/template/format";
 import { cn } from "@/lib/utils";
@@ -67,7 +66,8 @@ export function LetterEditor({
   companySummary,
   today,
   price,
-  jurisdictions,
+  companyMoved,
+  translation,
   correction,
 }: {
   letterId: string;
@@ -78,7 +78,10 @@ export function LetterEditor({
   companySummary: string;
   today: string;
   price: string;
-  jurisdictions: JurisdictionOption[];
+  /** The same wording in the country's own language (German for Germany), issued with the paid letter. */
+  translation: LetterContext | null;
+  /** The company is now somewhere else than this draft's wording: where, to offer the switch. */
+  companyMoved?: { label: string };
   /** A free correction of a paid letter: the version it corrects and when the free period ends. */
   correction?: { version: number; until: string };
 }) {
@@ -123,6 +126,21 @@ export function LetterEditor({
   const sideBySide = useSideBySide();
   const deferred = useDeferredValue(state);
   const doc = useMemo(() => buildLetterDocument(context, company, deferred, { date: today }), [context, company, deferred, today]);
+
+  // A German or Dutch letter also comes translated, if the translation covers every section the letter has.
+  const [previewLanguage, setPreviewLanguage] = useState("en");
+  const untranslated = translation ? untranslatedSections(context, translation, state.removedSections) : [];
+  const translated = translation && !untranslated.length ? translation : null;
+  const translationName = translation?.language ? languageName(translation.language, "en") : null;
+  const shownLanguage = translated ? previewLanguage : "en";
+  const translatedDoc = useMemo(
+    () => (translated && shownLanguage !== "en" ? buildLetterDocument(translated, company, deferred, { date: today }) : null),
+    [translated, shownLanguage, company, deferred, today],
+  );
+  const previewLanguages: PreviewLanguages | undefined =
+    translated && translationName
+      ? { options: [{ code: "en", label: "English" }, { code: translated.language!, label: translationName }], value: shownLanguage, onChange: setPreviewLanguage }
+      : undefined;
 
   const sections = letterSections(context, state.removedSections);
   const fieldsBySection = useMemo(() => {
@@ -247,24 +265,23 @@ export function LetterEditor({
     }
     await autosave.flush();
     // A PDF, not an app page: plain navigation, not the router.
-    const url = new URL(`/api/letters/${letterId}/preview-pdf`, window.location.origin).href;
+    const url = new URL(`/api/letters/${letterId}/preview-pdf${shownLanguage === "en" ? "" : `?lang=${shownLanguage}`}`, window.location.origin).href;
     if (tab) tab.location.href = url;
     else window.location.assign(url);
   };
 
-  const changeCountry = async (code: string) => {
+  const [following, setFollowing] = useState(false);
+  const followCompany = async () => {
+    setFollowing(true);
     await autosave.flush();
-    const result = await changeLetterCountry(letterId, autosave.editedAt(), code);
-    if (!result.ok) {
-      toast(result.message);
-      return false;
-    }
+    const result = await followCompanyCountry(letterId, autosave.editedAt());
+    setFollowing(false);
+    if (!result.ok) return toast(result.message);
     const dropped = result.dropped.length
       ? ` ${result.dropped.length === 1 ? "One answer doesn’t" : `${result.dropped.length} answers don’t`} apply there and ${result.dropped.length === 1 ? "was" : "were"} removed: ${result.dropped.join(", ")}.`
       : "";
     toast(`Now using ${result.name} wording.${dropped}`);
     router.refresh();
-    return true;
   };
 
   const template = context.templates.find((t) => t.key === state.templateKey);
@@ -445,9 +462,31 @@ export function LetterEditor({
                 : `${context.jurisdiction.countryName}, ${context.jurisdiction.name}`}
             </span>
             <span className="inline-flex h-7 items-center rounded-full bg-white px-2.5 ring-1 ring-line">{PAPER_LABEL[context.jurisdiction.paperSize]}</span>
-            <span className="inline-flex h-7 items-center rounded-full bg-white px-2.5 ring-1 ring-line">English</span>
-            {correction ? null : <ChangeCountryDialog jurisdictions={jurisdictions} current={context.jurisdiction.code} today={today} onConfirm={changeCountry} />}
+            <span className="inline-flex h-7 items-center rounded-full bg-white px-2.5 ring-1 ring-line">
+              {translated && translationName ? `English + ${translationName}` : "English"}
+            </span>
           </div>
+          {translated && translationName ? (
+            <p className="mt-2 text-[13px] text-ink-2">
+              The paid letter comes in English and {translationName}, both included. The English version prevails.
+            </p>
+          ) : translation && translationName && untranslated.length ? (
+            <p className="mt-2 text-[13px] text-ink-2">
+              This letter will be issued in English only: the {translationName} translation doesn’t cover {untranslated.map((s) => s.title.toLowerCase()).join(", ")} yet.
+            </p>
+          ) : null}
+
+          {companyMoved ? (
+            <div role="status" className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-marigold-500 bg-marigold-100 px-3 py-2.5 text-[13px] text-marigold-800">
+              <TriangleAlert aria-hidden className="size-4 shrink-0" />
+              <span className="min-w-[200px] flex-1">
+                {company.legalName} is now in {companyMoved.label}. This draft still uses the wording from when it was started.
+              </span>
+              <Button variant="secondary" size="md" disabled={following} onClick={followCompany}>
+                {following ? "Switching…" : `Use ${companyMoved.label} wording`}
+              </Button>
+            </div>
+          ) : null}
 
           {doc.unreviewed ? (
             <p className="mt-3 flex items-start gap-2 rounded-lg border border-marigold-500 bg-marigold-100 px-3 py-2.5 text-[13px] text-marigold-800">
@@ -532,10 +571,11 @@ export function LetterEditor({
 
         <PreviewPane
           visible={sideBySide || view === "preview"}
-          doc={doc}
+          doc={translatedDoc ?? doc}
           styleName={template?.name ?? "Classic"}
           missing={missing}
           onJump={jumpTo}
+          languages={previewLanguages}
           className={cn(view === "form" && "max-lg:hidden")}
         />
       </div>

@@ -17,6 +17,7 @@ export type CompanyRow = {
   registered_address: string;
   registration_number: string;
   country_code: string;
+  region_code: string | null;
   website: string | null;
   contact_phone: string | null;
   contact_email: string | null;
@@ -29,7 +30,7 @@ export type CompanyRow = {
 };
 
 export const COMPANY_FOR_LETTER =
-  "id, legal_name, trading_name, registered_address, registration_number, country_code, website, contact_phone, contact_email, brand_color, logo_path, logo_width, logo_height, signatory_name, signatory_title";
+  "id, legal_name, trading_name, registered_address, registration_number, country_code, region_code, website, contact_phone, contact_email, brand_color, logo_path, logo_width, logo_height, signatory_name, signatory_title";
 
 /** A company as letters use it, with a signed logo URL that lasts for an editing session. */
 export async function letterCompany(row: CompanyRow, seconds = EDITOR_LOGO_SECONDS): Promise<LetterCompany> {

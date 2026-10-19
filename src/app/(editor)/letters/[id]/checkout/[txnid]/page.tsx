@@ -4,6 +4,7 @@ import { z } from "zod";
 import { CheckoutHeader } from "@/components/checkout/checkout-header";
 import { PaymentStatus } from "@/components/checkout/payment-status";
 import { requireUser } from "@/lib/auth";
+import { languageName } from "@/lib/letter/translation";
 import { formatMoney } from "@/lib/payments/prices.server";
 import { createClient } from "@/lib/supabase/server";
 
@@ -18,7 +19,7 @@ export default async function PaymentStatusPage({ params }: PageProps<"/letters/
   const supabase = await createClient();
   const { data: payment } = await supabase
     .from("payments")
-    .select("txnid, status, failure_reason, amount_minor, currency, display_amount_minor, display_currency, created_at")
+    .select("txnid, status, failure_reason, amount_minor, currency, display_amount_minor, display_currency, created_at, language:letter_snapshot->translation->>language")
     .eq("txnid", txnid)
     .eq("letter_id", id)
     .eq("user_id", user.id)
@@ -34,7 +35,7 @@ export default async function PaymentStatusPage({ params }: PageProps<"/letters/
       <CheckoutHeader back={{ href: "/dashboard", label: "Your letters" }} />
       <main className="mx-auto max-w-[640px] px-4 py-8 md:py-14">
         <PaymentStatus
-          target={{ kind: "letter", letterId: id }}
+          target={{ kind: "letter", letterId: id, translation: payment.language ? { code: payment.language, name: languageName(payment.language, "en") } : undefined }}
           txnid={payment.txnid}
           initial={{ status: payment.status, failureReason: payment.failure_reason, ready: Boolean(first?.pdf_path) }}
           amount={shown === charged ? charged : `${shown} (charged as ${charged})`}

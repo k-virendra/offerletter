@@ -11,7 +11,7 @@ describe("render tokens", () => {
   it("round-trips a target until it expires", () => {
     const now = Date.UTC(2026, 9, 16, 12);
     const token = signRenderToken({ kind: "draft", id: ID, watermark: true }, SECRET, 60, now);
-    expect(verifyRenderToken(token, SECRET, now + 59_000)).toEqual({ kind: "draft", id: ID, watermark: true });
+    expect(verifyRenderToken(token, SECRET, now + 59_000)).toEqual({ kind: "draft", id: ID, watermark: true, language: "en" });
     expect(verifyRenderToken(token, SECRET, now + 61_000)).toBeNull();
   });
 
@@ -23,6 +23,12 @@ describe("render tokens", () => {
     expect(verifyRenderToken(token, `${SECRET}-other`)).toBeNull();
     expect(verifyRenderToken(`${body}.`, SECRET)).toBeNull();
     expect(verifyRenderToken("not-a-token", SECRET)).toBeNull();
+  });
+
+  it("names the language of a translation", () => {
+    const token = signRenderToken({ kind: "version", id: ID, watermark: false, language: "de" }, SECRET);
+    expect(verifyRenderToken(token, SECRET)).toEqual({ kind: "version", id: ID, watermark: false, language: "de" });
+    expect(() => signRenderToken({ kind: "version", id: ID, watermark: false, language: "../x" }, SECRET)).toThrow();
   });
 
   it("only signs UUID targets with a strong secret", () => {
@@ -40,6 +46,8 @@ describe("version snapshots", () => {
     expect(contentHash(reordered, company)).toBe(contentHash(snapshot, company));
     expect(contentHash(snapshot, company)).toMatch(/^[0-9a-f]{64}$/);
     expect(contentHash({ ...snapshot, date: "2026-10-17" }, company)).not.toBe(contentHash(snapshot, company));
+    // The translation issued with a version is part of what it's made from.
+    expect(contentHash({ ...snapshot, translation: { language: "de" } as never }, company)).not.toBe(contentHash(snapshot, company));
     expect(canonicalJson({ b: undefined, a: 1 })).toBe('{"a":1}');
   });
 });
