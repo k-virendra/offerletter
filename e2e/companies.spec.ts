@@ -51,6 +51,30 @@ test("a first company: empty state, validation and save", async ({ page, isMobil
   if (!isMobile) await expect(page.getByRole("link", { name: /My companies\s*1 of 5/ })).toBeVisible();
 });
 
+test("a company saves without a contact phone or email; required fields are marked", async ({ page }) => {
+  await signInAsNewUser(page, "no-contacts");
+  await page.getByRole("link", { name: "Add company" }).first().click();
+  const form = drawer(page);
+  // A red asterisk marks the required fields; the optional ones have none, and only required controls say so.
+  const mark = (id: string) => form.locator(`label[for="${id}"] + span`);
+  await expect(mark("company-legal-name")).toHaveText("*");
+  await expect(mark("company-signatory-name")).toHaveText("*");
+  await expect(mark("company-contact-phone")).toHaveCount(0);
+  await expect(mark("company-contact-email")).toHaveCount(0);
+  await expect(form.getByLabel("Legal name")).toHaveAttribute("aria-required", "true");
+  await expect(form.getByLabel("Contact email")).not.toHaveAttribute("aria-required", "true");
+
+  await form.getByLabel("Legal name").fill("Quiet Studio Ltd");
+  await form.getByLabel("Country of registration").selectOption({ label: "United Kingdom" });
+  await form.getByLabel("Registration number").fill("12345678");
+  await form.getByLabel("Registered address").fill("1 High Street, London");
+  await form.getByLabel("Name", { exact: true }).fill("Sam Taylor");
+  await form.getByLabel("Job title").fill("Director");
+  await form.getByRole("button", { name: "Save company" }).click();
+  await expect(toastText(page, "Company saved. It will fill in on your next letter.")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Quiet Studio Ltd" })).toBeVisible();
+});
+
 test("editing keeps the details, darkens a light brand colour and stores a logo", async ({ page, isMobile }) => {
   const { userId } = await signInAsNewUser(page, "edit-company");
   const [company] = await seedCompanies(userId, ["Sample Analytics Inc."]);

@@ -1,5 +1,5 @@
 import { CircleAlert } from "lucide-react";
-import type { ComponentProps, ReactNode } from "react";
+import { cloneElement, isValidElement, type ComponentProps, type ReactElement, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 export const controlClass =
@@ -37,13 +37,13 @@ export function Field({
 }) {
   return (
     <div className={cn("flex flex-col gap-1.5", className)}>
-      <div className="flex items-baseline justify-between gap-2">
+      <div className="flex items-baseline gap-0.5">
         <label htmlFor={id} className="text-sm font-medium text-ink">
           {label}
         </label>
-        <span className="text-xs text-muted">{required ? "Required" : "Optional"}</span>
+        {required ? <RequiredMark /> : null}
       </div>
-      {children}
+      {required ? markRequired(children) : children}
       {error ? (
         <p id={`${id}-error`} className="flex items-start gap-1.5 text-[13px] text-danger">
           <CircleAlert aria-hidden className="mt-0.5 size-3.5 shrink-0" />
@@ -65,4 +65,24 @@ export function fieldControlProps(id: string, { error, help }: { error?: string;
     "aria-invalid": error ? true : undefined,
     "aria-describedby": error ? `${id}-error` : help ? `${id}-help` : undefined,
   } as const;
+}
+
+/**
+ * The red asterisk after a required field's label. It's outside the label, so the field's name stays clean; screen
+ * readers hear "required" from the control's aria-required instead.
+ */
+export function RequiredMark() {
+  return (
+    <span aria-hidden className="text-sm font-semibold text-danger">
+      *
+    </span>
+  );
+}
+
+/** Marks the control inside a <Field> as required for assistive technology. */
+function markRequired(children: ReactNode): ReactNode {
+  if (!isValidElement(children)) return children;
+  const element = children as ReactElement<Record<string, unknown>>;
+  const control = element.type === Input || element.type === Select || element.type === Textarea || ["input", "select", "textarea"].includes(element.type as string);
+  return control ? cloneElement(element, { "aria-required": true }) : children;
 }

@@ -18,8 +18,8 @@ export type CompanyRow = {
   registration_number: string;
   country_code: string;
   website: string | null;
-  contact_phone: string;
-  contact_email: string;
+  contact_phone: string | null;
+  contact_email: string | null;
   brand_color: string | null;
   logo_path: string | null;
   logo_width: number | null;

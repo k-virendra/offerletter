@@ -1,7 +1,7 @@
 "use client";
 
 import { CircleAlert, Globe, Lock, Minus } from "lucide-react";
-import { controlClass } from "@/components/ui/field";
+import { controlClass, RequiredMark } from "@/components/ui/field";
 import { cn } from "@/lib/utils";
 import type { FieldDefinition, FieldValue, ResolvedClause, SectionDefinition } from "@/lib/letter/types";
 
@@ -203,18 +203,17 @@ function FieldControl({
       className={cn("flex flex-col gap-1.5 rounded-lg transition-shadow", wide && "col-span-full", flash && "bg-[#FFF6DF] shadow-[0_0_0_6px_#FFF6DF,0_0_0_8px_var(--color-marigold-500)]")}
     >
       {field.type !== "yes_no" ? (
-        <div className="flex items-baseline justify-between gap-2">
+        <div className="flex items-baseline gap-0.5">
           <label htmlFor={id} className="text-sm font-medium text-ink">
             {field.label}
           </label>
+          {field.required && !locked ? <RequiredMark /> : null}
           {locked ? (
-            <span className="inline-flex items-center gap-1 text-xs text-muted">
+            <span className="ml-auto inline-flex items-center gap-1 text-xs text-muted">
               <Lock aria-hidden className="size-3" />
               Locked
             </span>
-          ) : (
-            <span className="text-xs text-muted">{field.required ? "Required" : "Optional"}</span>
-          )}
+          ) : null}
         </div>
       ) : null}
       {control}

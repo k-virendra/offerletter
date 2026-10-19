@@ -47,6 +47,13 @@ describe("companySchema", () => {
     expect(errorsFor({ country_code: "XX" })).toEqual({ country_code: "Choose the country where the company is registered" });
   });
 
+  it("treats the contact phone and email as optional", () => {
+    expect(errorsFor({ contact_phone: "", contact_email: "  " })).toEqual({});
+    const company = companySchema.parse({ ...valid, contact_phone: " ", contact_email: "" });
+    expect(company.contact_phone).toBeNull();
+    expect(company.contact_email).toBeNull();
+  });
+
   it("matches the database's own checks", () => {
     // companies.website must match ^https?://[^\s]+\.[^\s]+$ and contact_email ^[^@\s]+@[^@\s]+\.[^@\s]+$
     const company = companySchema.parse(valid);

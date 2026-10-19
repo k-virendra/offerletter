@@ -45,13 +45,14 @@ const website = z
     return url;
   });
 
+// Optional: an empty contact email or phone is saved as nothing, and letters leave it out.
 const contactEmail = z
   .string()
   .trim()
   .toLowerCase()
   .max(254, tooLong(254))
   .superRefine((value, ctx) => {
-    if (!value) return ctx.addIssue({ code: "custom", message: "Enter a contact email" });
+    if (!value) return;
     const [local, domain, extra] = value.split("@");
     if (!local || !domain || extra !== undefined) {
       return ctx.addIssue({ code: "custom", message: "Enter a full email address, like name@company.com" });
@@ -60,19 +61,21 @@ const contactEmail = z
     if (!z.email().safeParse(value).success) {
       ctx.addIssue({ code: "custom", message: "Enter a full email address, like name@company.com" });
     }
-  });
+  })
+  .transform((value) => value || null);
 
 const contactPhone = z
   .string()
   .trim()
   .max(40, tooLong(40))
   .superRefine((value, ctx) => {
-    if (!value) return ctx.addIssue({ code: "custom", message: "Enter a contact phone number" });
+    if (!value) return;
     const digits = value.replace(/\D/g, "").length;
     if (!/^\+[\d\s().-]+$/.test(value) || digits < 7 || digits > 15) {
       ctx.addIssue({ code: "custom", message: "Enter a phone number with the country code, like +49 89 1234 5678" });
     }
-  });
+  })
+  .transform((value) => value || null);
 
 const brandColor = z
   .string()

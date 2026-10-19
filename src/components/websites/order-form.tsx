@@ -6,7 +6,7 @@ import { useState } from "react";
 import { startWebsiteOrder } from "@/app/(editor)/website/actions";
 import { AgreementCheckbox, BillingFields, focusFirstBillingError, FormMessage, NETWORK_ERROR, PayButton, PolicyLinks, submitToGateway, type BillingDefaults, type Countries } from "@/components/checkout/checkout-form";
 import { Button } from "@/components/ui/button";
-import { Field, fieldControlProps, Input, Select, Textarea } from "@/components/ui/field";
+import { Field, fieldControlProps, Input, RequiredMark, Select, Textarea } from "@/components/ui/field";
 import { billingErrors, billingSchema, type BillingErrors } from "@/lib/payments/billing";
 import { isDomain, normalizeDomain, orderErrors, orderSchema, PAGE_OPTIONS, type DomainCheck, type OrderErrors } from "@/lib/websites/order";
 
@@ -130,10 +130,12 @@ export function WebsiteOrderForm({
         ) : null}
         {DOMAIN_LABELS.map((label, index) => (
           <div key={label} className="flex flex-col gap-1.5">
-            <label htmlFor={index === 0 ? "order-domains" : `order-domain-${index}`} className="text-sm font-medium">
-              {label}
-              {index ? <span className="ml-2 text-xs font-normal text-muted">Optional</span> : null}
-            </label>
+            <span className="flex items-baseline gap-0.5">
+              <label htmlFor={index === 0 ? "order-domains" : `order-domain-${index}`} className="text-sm font-medium">
+                {label}
+              </label>
+              {index === 0 ? <RequiredMark /> : null}
+            </span>
             <div className="flex gap-2">
               <Input
                 id={index === 0 ? "order-domains" : `order-domain-${index}`}

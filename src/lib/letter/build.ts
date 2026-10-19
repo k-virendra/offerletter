@@ -97,8 +97,8 @@ export function buildLetterDocument(context: LetterContext, company: LetterCompa
     "company.registered_address": company.registeredAddress,
     "company.registration_number": company.registrationNumber,
     "company.website": company.website ?? "",
-    "company.contact_phone": company.contactPhone,
-    "company.contact_email": company.contactEmail,
+    "company.contact_phone": company.contactPhone ?? "",
+    "company.contact_email": company.contactEmail ?? "",
     "jurisdiction.name": jurisdiction.name,
     "letter.date": formatDate(options.date, locale),
   };

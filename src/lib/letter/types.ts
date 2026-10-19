@@ -77,8 +77,8 @@ export type LetterCompany = {
   registrationNumber: string;
   countryName: string;
   website: string | null;
-  contactPhone: string;
-  contactEmail: string;
+  contactPhone: string | null;
+  contactEmail: string | null;
   brandColor: string | null;
   logo: { url: string; width: number; height: number } | null;
 };
@@ -137,8 +137,8 @@ export type LetterDocument = {
     addressLines: string[];
     registration: string;
     website: string | null;
-    phone: string;
-    email: string;
+    phone: string | null;
+    email: string | null;
     countryName: string;
     logo: LetterCompany["logo"];
   };

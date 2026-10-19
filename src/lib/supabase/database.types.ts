@@ -193,8 +193,8 @@ export type Database = {
         Row: {
           archived_at: string | null
           brand_color: string | null
-          contact_email: string
-          contact_phone: string
+          contact_email: string | null
+          contact_phone: string | null
           country_code: string
           created_at: string
           id: string
@@ -216,8 +216,8 @@ export type Database = {
         Insert: {
           archived_at?: string | null
           brand_color?: string | null
-          contact_email: string
-          contact_phone: string
+          contact_email?: string | null
+          contact_phone?: string | null
           country_code: string
           created_at?: string
           id?: string
@@ -239,8 +239,8 @@ export type Database = {
         Update: {
           archived_at?: string | null
           brand_color?: string | null
-          contact_email?: string
-          contact_phone?: string
+          contact_email?: string | null
+          contact_phone?: string | null
           country_code?: string
           created_at?: string
           id?: string

@@ -20,11 +20,13 @@ import {
 import type { CountryOption } from "@/lib/countries";
 import { cn } from "@/lib/utils";
 
-export type EditableCompany = Omit<CompanyFormInput, "trading_name" | "website" | "brand_color"> & {
+export type EditableCompany = Omit<CompanyFormInput, "trading_name" | "website" | "brand_color" | "contact_phone" | "contact_email"> & {
   id: string;
   trading_name: string | null;
   website: string | null;
   brand_color: string | null;
+  contact_phone: string | null;
+  contact_email: string | null;
   logoUrl?: string;
   logo_width: number | null;
   logo_height: number | null;
@@ -219,10 +221,10 @@ export function CompanyForm({
           <Field id={fieldId("website")} label={LABELS.website} error={errors.website?.message}>
             <Input {...field("website")} type="url" inputMode="url" autoComplete="url" placeholder="https://" />
           </Field>
-          <Field id={fieldId("contact_phone")} label={LABELS.contact_phone} required error={errors.contact_phone?.message}>
+          <Field id={fieldId("contact_phone")} label={LABELS.contact_phone} error={errors.contact_phone?.message}>
             <Input {...field("contact_phone")} type="tel" autoComplete="tel" placeholder="+49 89 1234 5678" />
           </Field>
-          <Field id={fieldId("contact_email")} label={LABELS.contact_email} required error={errors.contact_email?.message}>
+          <Field id={fieldId("contact_email")} label={LABELS.contact_email} error={errors.contact_email?.message}>
             <Input {...field("contact_email")} type="email" autoComplete="email" />
           </Field>
         </fieldset>
@@ -345,12 +347,9 @@ function LogoInput({ logo }: { logo: LogoState }) {
 
   return (
     <div className="flex flex-col gap-1.5">
-      <div className="flex items-baseline justify-between gap-2">
-        <span id={`${id}-label`} className="text-sm font-medium text-ink">
-          Logo
-        </span>
-        <span className="text-xs text-muted">Optional</span>
-      </div>
+      <span id={`${id}-label`} className="text-sm font-medium text-ink">
+        Logo
+      </span>
       <div
         className={cn(
           "flex flex-wrap items-center gap-4 rounded-xl border border-line bg-[#FBFBF9] p-3.5",
