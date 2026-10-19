@@ -5,6 +5,7 @@ import { useCallback, useLayoutEffect, useRef, useState, useSyncExternalStore } 
 import { PAPER } from "@/letter-styles/kit";
 import { LetterPages } from "@/letter-styles/letter-pages";
 import type { FieldDefinition, LetterDocument } from "@/lib/letter/types";
+import { previewWatermark } from "@/lib/letter/watermark";
 import { cn } from "@/lib/utils";
 
 // The live preview: real pages (the same ones the PDF prints), zoom, and chips for empty required fields.
@@ -189,7 +190,8 @@ export function PreviewPane({
       <div ref={scrollRef} className="min-h-0 flex-1 overflow-auto" style={{ padding: PADDING }} tabIndex={-1}>
         <div className="mx-auto" style={{ width: paper.width * scale, height: totalHeight * scale }}>
           <div style={{ width: paper.width, transform: `scale(${scale})`, transformOrigin: "top left" }}>
-            {visible ? <LetterPages doc={doc} chips="interactive" onJump={onJump} onPageCount={setPages} /> : null}
+            {/* Unpaid letters are always shown watermarked, like the preview PDF. */}
+            {visible ? <LetterPages doc={doc} chips="interactive" onJump={onJump} onPageCount={setPages} watermark={previewWatermark(doc.language)} /> : null}
           </div>
         </div>
       </div>

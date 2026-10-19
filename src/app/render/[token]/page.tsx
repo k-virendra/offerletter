@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PrintLetter } from "@/components/pdf/print-letter";
 import { serverEnv } from "@/lib/env.server";
+import { previewWatermark } from "@/lib/letter/watermark";
 import { draftInputs, versionInputs } from "@/lib/pdf/inputs.server";
 import { verifyRenderToken } from "@/lib/pdf/token";
 
@@ -10,8 +11,6 @@ import { verifyRenderToken } from "@/lib/pdf/token";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Letter", robots: { index: false, follow: false } };
-
-const WATERMARK: Record<string, string> = { en: "Preview – not valid", de: "Vorschau – nicht gültig", nl: "Voorbeeld – niet geldig" };
 
 export default async function RenderPage({ params }: PageProps<"/render/[token]">) {
   const { token } = await params;
@@ -27,7 +26,7 @@ export default async function RenderPage({ params }: PageProps<"/render/[token]"
       company={inputs.company}
       state={inputs.state}
       date={inputs.date}
-      watermark={target.watermark ? (WATERMARK[target.language ?? "en"] ?? WATERMARK.en) : undefined}
+      watermark={target.watermark ? previewWatermark(target.language) : undefined}
     />
   );
 }

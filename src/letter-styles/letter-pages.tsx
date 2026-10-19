@@ -177,11 +177,13 @@ export function LetterPages({
 
 /** A diagonal mark across the page. Hidden from screen readers; in the PDF it's decoration, not content. */
 function Watermark({ text }: { text: string }) {
+  // 64 px fits "Preview – not valid" across the page; longer translations get smaller so they aren't cut off.
+  const size = Math.min(64, Math.floor((64 * 19) / text.length));
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center overflow-hidden">
       <span
-        className="font-sans text-[64px] font-bold tracking-[0.08em] whitespace-nowrap uppercase select-none"
-        style={{ color: "rgb(180 35 24 / 0.16)", transform: "rotate(-35deg)" }}
+        className="font-sans font-bold tracking-[0.08em] whitespace-nowrap uppercase select-none"
+        style={{ fontSize: size, color: "rgb(180 35 24 / 0.16)", transform: "rotate(-35deg)" }}
       >
         {text}
       </span>

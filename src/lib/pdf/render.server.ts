@@ -45,11 +45,21 @@ function getBrowser(): Promise<Browser> {
   return browser;
 }
 
-function renderBaseUrl(): string {
+/**
+ * Where headless Chrome opens the print page. Production uses the public site: Vercel's deployment protection
+ * guards each deployment's own *.vercel.app address, and Chrome has no Vercel login, so it would get a 401 there.
+ * Preview deployments render their own code at that address, let in by the automation bypass secret if set.
+ */
+function renderTarget(token: string): string {
   const { RENDER_BASE_URL } = serverEnv();
-  if (RENDER_BASE_URL) return RENDER_BASE_URL.replace(/\/$/, "");
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  return publicEnv.NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
+  const trim = (url: string) => url.replace(/\/$/, "");
+  if (RENDER_BASE_URL) return `${trim(RENDER_BASE_URL)}/render/${token}`;
+  if (process.env.VERCEL_ENV === "production" || !process.env.VERCEL_URL) return `${trim(publicEnv.NEXT_PUBLIC_APP_URL)}/render/${token}`;
+  const url = new URL(`https://${process.env.VERCEL_URL}/render/${token}`);
+  const bypass = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+  // As query parameters, so the secret only goes to this deployment (never to the logo's storage host).
+  if (bypass) url.search = new URLSearchParams({ "x-vercel-protection-bypass": bypass, "x-vercel-set-bypass-cookie": "true" }).toString();
+  return url.href;
 }
 
 export type { PdfMetadata } from "./metadata";
@@ -63,7 +73,7 @@ export async function renderLetterPdf(target: RenderTarget, metadata: PdfMetadat
   const token = signRenderToken(target, serverEnv().RENDER_TOKEN_SECRET, 60);
   const page = await (await getBrowser()).newPage();
   try {
-    const response = await page.goto(`${renderBaseUrl()}/render/${token}`, { waitUntil: "domcontentloaded", timeout: 30_000 });
+    const response = await page.goto(renderTarget(token), { waitUntil: "domcontentloaded", timeout: 30_000 });
     if (!response?.ok()) throw new PdfRenderError(`The print page answered ${response?.status() ?? "nothing"}`);
     const outcome = await page.waitForSelector(`${READY}, ${FAILED}`, { timeout: 30_000 });
     if (await outcome?.evaluate((element) => element.getAttribute("data-letter-ready") === "error")) {
