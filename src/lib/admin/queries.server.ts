@@ -151,9 +151,15 @@ export async function websiteCounts(today: string) {
   return { setup: setup.count ?? 0, active: active.count ?? 0, pastDue: pastDue.count ?? 0, expiring: expiring.count ?? 0 };
 }
 
-/** Minutes until the next quarter hour, when the payment recheck runs (vercel.json). */
-export function minutesToNextRecheck(now = new Date()): number {
-  return 15 - (now.getUTCMinutes() % 15);
+/** When each periodic job last ran, who ran it and what it did (from the audit log). */
+export async function lastJobRuns(): Promise<Record<"payment-check" | "billing", { at: string; by: string | null; details: Record<string, number> } | null>> {
+  const supabase = await createClient();
+  const last = async (job: string) => {
+    const { data } = await supabase.from("audit_logs").select("created_at, details, profiles(email)").eq("entity_type", "jobs").eq("entity_id", job).order("created_at", { ascending: false }).limit(1).maybeSingle();
+    return data ? { at: data.created_at, by: data.profiles?.email ?? null, details: (data.details ?? {}) as Record<string, number> } : null;
+  };
+  const [paymentCheck, billing] = await Promise.all([last("payment-check"), last("billing")]);
+  return { "payment-check": paymentCheck, billing };
 }
 
 export const PAYMENT_LABELS = {

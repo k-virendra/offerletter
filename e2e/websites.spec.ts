@@ -178,6 +178,12 @@ test.describe("a website, from order to cancellation", () => {
     await toast(customer, "We’ve received your request. Our team will contact you to confirm.");
     await admin.reload();
     await expect(admin.getByText(/Asked to cancel on/)).toBeVisible();
+
+    // Billing is run by hand from the overview (today's run issues nothing more for this plan: it's paid ahead).
+    await admin.goto("/admin");
+    await admin.getByRole("button", { name: "Run billing" }).click();
+    await toast(admin, /^Billing done: /);
+    await expect(admin.getByText(/Last run .* by e2e-website-admin/)).toBeVisible();
     await admin.context().close();
   });
 });

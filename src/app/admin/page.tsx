@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { setCountryEnabled } from "@/app/admin/actions";
 import { ToggleAction, VerifyPaymentButton } from "@/components/admin/controls";
+import { RunJobButton } from "@/components/admin/run-job-button";
 import { CountryStatus } from "@/components/admin/country-status";
 import { PeriodSelect } from "@/components/admin/period-select";
 import { AdminCard, AdminHeader, AdminTable, EmptyState, Metric, Pill, td, th } from "@/components/admin/ui";
-import { age, countryReadiness, minutesToNextRecheck, monthPeriod, PAYMENT_LABELS, periodMetrics, recentMonths, shortDateTime, websiteCounts } from "@/lib/admin/queries.server";
+import { age, countryReadiness, lastJobRuns, monthPeriod, PAYMENT_LABELS, periodMetrics, recentMonths, shortDateTime, websiteCounts } from "@/lib/admin/queries.server";
 import { todayIso } from "@/lib/template/format";
 import { formatMoney } from "@/lib/payments/prices.server";
 import { createClient } from "@/lib/supabase/server";
@@ -18,13 +19,14 @@ export default async function AdminOverviewPage({ searchParams }: PageProps<"/ad
   const { period: periodKey } = await searchParams;
   const period = monthPeriod(typeof periodKey === "string" ? periodKey : undefined);
   const supabase = await createClient();
-  const [metrics, countries, reports, payments, prices, websites] = await Promise.all([
+  const [metrics, countries, reports, payments, prices, websites, jobs] = await Promise.all([
     periodMetrics(period),
     countryReadiness(),
     supabase.from("abuse_reports").select("id, company_name, description, status, created_at, updated_at, profiles(email)").order("created_at", { ascending: false }).limit(3),
     supabase.from("payments").select("txnid, status, amount_minor, currency, created_at, failure_reason").order("created_at", { ascending: false }).limit(5),
     supabase.from("prices").select("id, purpose, currency, amount_minor, active, notes").order("active", { ascending: false }).order("created_at", { ascending: false }).limit(4),
     websiteCounts(todayIso()),
+    lastJobRuns(),
   ]);
   const change = metrics.lettersPaidChange;
 
@@ -60,8 +62,41 @@ export default async function AdminOverviewPage({ searchParams }: PageProps<"/ad
           value={metrics.draftToPaid === null ? "–" : `${metrics.draftToPaid}%`}
           note={`Checkout to paid: ${metrics.checkoutToPaid === null ? "–" : `${metrics.checkoutToPaid}%`}`}
         />
-        <Metric label="Payments pending" value={metrics.pending} note={`Next recheck in ${minutesToNextRecheck()} min`} noteTone="info" />
+        <Metric label="Payments pending" value={metrics.pending} note="Run “Check payments” below to ask PayU again" noteTone="info" />
       </div>
+
+      <AdminCard id="jobs" title="Periodic jobs" className="mt-5">
+        <p className="-mt-1 mb-3 text-sm text-ink-2">Nothing runs on a schedule: run these by hand. Both are safe to run as often as you like.</p>
+        <ul className="grid gap-4 md:grid-cols-2">
+          {(
+            [
+              {
+                job: "billing",
+                label: "Run billing",
+                what: "Issues website invoices due on the coming 1st (from 5 days before) and marks plans past due a week after. Run it daily, or at least from the 27th to the 1st and around the 8th.",
+              },
+              {
+                job: "payment-check",
+                label: "Check payments",
+                what: "Asks PayU about payments still pending, finishes paid letters and invoices whose PDF or email didn’t go out, and closes checkouts abandoned for a day.",
+              },
+            ] as const
+          ).map(({ job, label, what }) => {
+            const last = jobs[job];
+            return (
+              <li key={job} className="flex flex-col gap-2 rounded-xl border border-line-soft p-4">
+                <p className="text-sm">{what}</p>
+                <p className="text-[13px] text-muted">
+                  {last ? `Last run ${shortDateTime(last.at)}${last.by ? ` by ${last.by}` : ""}` : "Not run yet"}
+                </p>
+                <div>
+                  <RunJobButton job={job} label={label} />
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </AdminCard>
 
       <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-2">
         <AdminCard id="countries" title="Countries" action={<Link href="/admin/countries" className={linkClass}>Manage</Link>}>

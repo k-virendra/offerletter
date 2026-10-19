@@ -71,7 +71,12 @@ test.describe("admin", () => {
     await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
     for (const label of ["Letters paid", "Revenue", "Draft to paid", "Payments pending"]) await expect(page.getByText(label, { exact: true })).toBeVisible();
     for (const heading of ["Countries", "Misuse reports", "Recent payments", "Prices"]) await expect(page.getByRole("heading", { name: heading, exact: true })).toBeVisible();
-    await page.getByLabel("Period").selectOption({ index: 1 });
+    // The periodic jobs are run by hand from here.
+    await page.getByRole("button", { name: "Check payments" }).click();
+    await toast(page, /^Payments checked: /);
+    await expect(page.getByText(/Last run .* by e2e-admin-overview/)).toBeVisible();
+
+    await page.getByRole("combobox", { name: "Period" }).selectOption({ index: 1 });
     await page.waitForURL(/period=\d{4}-\d{2}/);
   });
 
